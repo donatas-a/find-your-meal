@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1 className="hero-title">Curated discovery for the digital epicurean.</h1>
+        <h1 className="hero-title">Mūsų receptai.</h1>
         <div className="search-wrap">
           <span className="material-symbols-outlined search-icon">search</span>
           <input
