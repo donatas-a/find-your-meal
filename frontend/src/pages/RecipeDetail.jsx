@@ -6,7 +6,7 @@ export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [recipe, setRecipe] = useState(null)
-  const [lang, setLang] = useState('en')
+  const [lang, setLang] = useState('lt')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
