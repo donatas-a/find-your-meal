@@ -16,29 +16,37 @@ export default function Home() {
     r.title_lt.toLowerCase().includes(search.toLowerCase())
   )
 
-  if (loading) return <div className="loading">Loading recipes…</div>
-
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">Recipes</h1>
-        <input
-          className="search-bar"
-          type="text"
-          placeholder="Search recipes…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-      </div>
-      <div className="recipe-grid">
-        {filtered.length === 0 ? (
-          <div className="empty-state">
-            {search ? 'No recipes match your search.' : 'No recipes yet.'}
-          </div>
-        ) : (
-          filtered.map(r => <RecipeCard key={r.id} recipe={r} />)
-        )}
-      </div>
-    </div>
+    <>
+      <section className="hero">
+        <h1 className="hero-title">Curated discovery for the digital epicurean.</h1>
+        <div className="search-wrap">
+          <span className="material-symbols-outlined search-icon">search</span>
+          <input
+            className="search-bar"
+            type="text"
+            placeholder="Search for recipes…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+      </section>
+
+      {loading ? (
+        <div className="loading">Loading recipes…</div>
+      ) : (
+        <div className="recipe-grid">
+          {filtered.length === 0 ? (
+            <div className="empty-state">
+              {search ? 'No recipes match your search.' : 'No recipes yet.'}
+            </div>
+          ) : (
+            filtered.map((r, i) => (
+              <RecipeCard key={r.id} recipe={r} featured={i % 5 === 1} />
+            ))
+          )}
+        </div>
+      )}
+    </>
   )
 }

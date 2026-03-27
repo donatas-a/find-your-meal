@@ -12,17 +12,13 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">
-        Find Your <span>Meal</span>
-      </Link>
+      <Link to="/" className="navbar-brand">Find Your Meal</Link>
       <div className="navbar-actions">
-        {isAdmin ? (
+        {isAdmin && (
           <>
-            <Link to="/admin" className="btn btn-outline btn-sm">Admin</Link>
+            <Link to="/admin" className="navbar-link">Admin</Link>
             <button onClick={handleLogout} className="btn btn-outline btn-sm">Log out</button>
           </>
-        ) : (
-          <Link to="/login" className="btn btn-outline btn-sm">Admin login</Link>
         )}
       </div>
     </nav>
