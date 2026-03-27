@@ -48,7 +48,14 @@ def import_recipes():
         sys.exit(1)
 
     print(f"Reading {EXCEL_PATH} ...")
-    df = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_NAME)
+    xl = pd.ExcelFile(EXCEL_PATH)
+    print(f"Available sheets: {xl.sheet_names}")
+
+    # Pick last sheet (structured ingredients sheet)
+    sheet = xl.sheet_names[-1]
+    print(f"Using sheet: '{sheet}'")
+
+    df = pd.read_excel(EXCEL_PATH, sheet_name=sheet)
     df.columns = ['recipe', 'ingredient', 'quantity']
     df = df.dropna(subset=['recipe', 'ingredient'])
     df['recipe']     = df['recipe'].astype(str).str.strip()

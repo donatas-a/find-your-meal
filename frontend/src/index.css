@@ -150,6 +150,38 @@ img { display: block; max-width: 100%; }
   margin: 0 auto;
 }
 
+/* ── Language toggle ────────────────────────────────────── */
+.lang-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 1.5rem;
+}
+
+.lang-btn {
+  padding: 0.35rem 1rem;
+  border: 1.5px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.lang-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.lang-btn:hover:not(.active) {
+  background: var(--primary);
+  color: #fff;
+  opacity: 0.8;
+}
+
 .search-icon {
   position: absolute;
   left: 1.25rem;

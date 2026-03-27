@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 
-export default function RecipeCard({ recipe, featured = false }) {
+export default function RecipeCard({ recipe, featured = false, lang = 'lt' }) {
   const navigate = useNavigate()
+  const title = lang === 'en' ? recipe.title : recipe.title_lt
 
   return (
     <article
@@ -10,14 +11,13 @@ export default function RecipeCard({ recipe, featured = false }) {
     >
       <div className="recipe-card-img-wrap">
         {recipe.photo ? (
-          <img src={recipe.photo} alt={recipe.title} className="recipe-card-img" />
+          <img src={recipe.photo} alt={title} className="recipe-card-img" />
         ) : (
           <div className="recipe-card-placeholder">🍽️</div>
         )}
       </div>
       <div className="recipe-card-body">
-        <div className="recipe-card-title">{recipe.title}</div>
-        <div className="recipe-card-title-lt">{recipe.title_lt}</div>
+        <div className="recipe-card-title">{title}</div>
       </div>
     </article>
   )

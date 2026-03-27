@@ -6,6 +6,7 @@ export default function Home() {
   const [recipes, setRecipes] = useState([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [lang, setLang] = useState('lt')
 
   useEffect(() => {
     api.get('/recipes/').then(r => setRecipes(r.data)).finally(() => setLoading(false))
@@ -30,6 +31,16 @@ export default function Home() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+        <div className="lang-toggle">
+          <button
+            className={`lang-btn${lang === 'lt' ? ' active' : ''}`}
+            onClick={() => setLang('lt')}
+          >LT</button>
+          <button
+            className={`lang-btn${lang === 'en' ? ' active' : ''}`}
+            onClick={() => setLang('en')}
+          >EN</button>
+        </div>
       </section>
 
       {loading ? (
@@ -42,7 +53,7 @@ export default function Home() {
             </div>
           ) : (
             filtered.map((r, i) => (
-              <RecipeCard key={r.id} recipe={r} featured={i % 5 === 1} />
+              <RecipeCard key={r.id} recipe={r} featured={i % 5 === 1} lang={lang} />
             ))
           )}
         </div>
