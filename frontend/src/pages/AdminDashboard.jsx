@@ -5,6 +5,9 @@ import api from '../api/client'
 export default function AdminDashboard() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [importUrl, setImportUrl] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState('')
   const navigate = useNavigate()
 
   const fetchRecipes = () => {
@@ -19,6 +22,22 @@ export default function AdminDashboard() {
     setRecipes(prev => prev.filter(r => r.id !== id))
   }
 
+  const handleImport = async (e) => {
+    e.preventDefault()
+    if (!importUrl.trim()) return
+    setImporting(true)
+    setImportError('')
+    try {
+      const { data } = await api.post('/recipes/import-url', { url: importUrl.trim() })
+      setRecipes(prev => [data, ...prev])
+      setImportUrl('')
+    } catch (err) {
+      setImportError(err.response?.data?.detail || 'Import failed. This site may not support recipe import.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   if (loading) return <div className="loading">Loading…</div>
 
   return (
@@ -29,6 +48,21 @@ export default function AdminDashboard() {
           + Add Recipe
         </button>
       </div>
+
+      <form className="import-url-form" onSubmit={handleImport}>
+        <input
+          type="url"
+          className="form-input"
+          placeholder="Paste recipe URL to import (e.g. allrecipes.com/recipe/...)"
+          value={importUrl}
+          onChange={e => setImportUrl(e.target.value)}
+          disabled={importing}
+        />
+        <button className="btn btn-outline btn-sm" type="submit" disabled={importing || !importUrl.trim()}>
+          {importing ? 'Importing…' : 'Import from URL'}
+        </button>
+      </form>
+      {importError && <div className="import-error">{importError}</div>}
 
       {recipes.length === 0 ? (
         <div className="empty-state">No recipes yet. Add your first one!</div>

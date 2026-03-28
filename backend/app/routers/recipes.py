@@ -2,10 +2,13 @@ import os
 import uuid
 import json
 import io
+import time
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from PIL import Image
+from deep_translator import GoogleTranslator
+from recipe_scrapers import scrape_me, WebsiteNotImplementedError
 from .. import models, schemas
 from ..database import get_db
 from ..auth import get_current_admin
@@ -32,6 +35,73 @@ def remove_photo(path: Optional[str]):
         full = os.path.join("/app", path.lstrip("/"))
         if os.path.exists(full):
             os.remove(full)
+
+
+# ── URL import helpers ────────────────────────────────────────────────────────
+
+def _translate_list(items: list[str], translator: GoogleTranslator) -> list[str]:
+    result = []
+    for text in items:
+        try:
+            result.append(translator.translate(text) or text)
+            time.sleep(0.3)
+        except Exception:
+            result.append(text)
+    return result
+
+
+# ── URL import endpoint ───────────────────────────────────────────────────────
+
+@router.post("/import-url", response_model=schemas.RecipeOut)
+def import_recipe_from_url(
+    payload: schemas.ImportUrlRequest,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    try:
+        scraper = scrape_me(payload.url)
+    except WebsiteNotImplementedError:
+        raise HTTPException(status_code=422, detail="This site is not supported. Try allrecipes.com, bbcgoodfood.com, seriouseats.com, etc.")
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Could not fetch page: {e}")
+
+    title_en       = scraper.title() or ''
+    description_en = scraper.description() or ''
+    ingredients_en = scraper.ingredients() or []
+    try:
+        steps_en = scraper.instructions_list() or []
+    except Exception:
+        raw = scraper.instructions() or ''
+        steps_en = [s.strip() for s in raw.split('\n') if s.strip()]
+
+    if not title_en or not ingredients_en:
+        raise HTTPException(status_code=422, detail="Could not extract title or ingredients from the page.")
+
+    if db.query(models.Recipe).filter(models.Recipe.title == title_en).first():
+        raise HTTPException(status_code=409, detail=f"Recipe '{title_en}' already exists.")
+
+    en_lt = GoogleTranslator(source='en', target='lt')
+    try:
+        title_lt       = en_lt.translate(title_en) or title_en
+        description_lt = en_lt.translate(description_en) if description_en else '-'
+        ingredients_lt = _translate_list(ingredients_en, en_lt)
+        steps_lt       = _translate_list(steps_en, en_lt)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Translation failed: {e}")
+
+    recipe = models.Recipe(
+        title          = title_en,
+        title_lt       = title_lt,
+        description_lt = description_lt or '-',
+        ingredients    = ingredients_en,
+        ingredients_lt = ingredients_lt,
+        steps          = steps_en or ['-'],
+        steps_lt       = steps_lt or ['-'],
+    )
+    db.add(recipe)
+    db.commit()
+    db.refresh(recipe)
+    return recipe
 
 
 @router.get("/", response_model=List[schemas.RecipeOut])

@@ -19,6 +19,10 @@ class RecipeOut(BaseModel):
         from_attributes = True
 
 
+class ImportUrlRequest(BaseModel):
+    url: str
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
