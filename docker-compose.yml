@@ -24,6 +24,7 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      KIMI_API_KEY: ${KIMI_API_KEY}
     volumes:
       - uploads:/app/uploads
     depends_on:
