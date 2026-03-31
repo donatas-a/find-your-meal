@@ -6,6 +6,7 @@ export default function AdminDashboard() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [importUrl, setImportUrl] = useState('')
+  const [importText, setImportText] = useState('')
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const navigate = useNavigate()
@@ -38,6 +39,22 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleImportText = async (e) => {
+    e.preventDefault()
+    if (!importText.trim()) return
+    setImporting(true)
+    setImportError('')
+    try {
+      const { data } = await api.post('/recipes/import-text', { text: importText.trim() })
+      setRecipes(prev => [data, ...prev])
+      setImportText('')
+    } catch (err) {
+      setImportError(err.response?.data?.detail || 'Import failed.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   if (loading) return <div className="loading">Loading…</div>
 
   return (
@@ -63,6 +80,20 @@ export default function AdminDashboard() {
         </button>
       </form>
       {importError && <div className="import-error">{importError}</div>}
+
+      <form className="import-text-form" onSubmit={handleImportText}>
+        <textarea
+          className="form-textarea"
+          placeholder="Or paste recipe text here (works with any website — copy the full recipe text and paste it)"
+          value={importText}
+          onChange={e => setImportText(e.target.value)}
+          disabled={importing}
+          rows={4}
+        />
+        <button className="btn btn-outline btn-sm" type="submit" disabled={importing || !importText.trim()}>
+          {importing ? 'Importing…' : 'Import from text'}
+        </button>
+      </form>
 
       {recipes.length === 0 ? (
         <div className="empty-state">No recipes yet. Add your first one!</div>

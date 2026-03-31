@@ -701,6 +701,17 @@ img { display: block; max-width: 100%; }
   margin-bottom: 1rem;
 }
 
+.import-text-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.import-text-form .btn {
+  align-self: flex-end;
+}
+
 @media (max-width: 600px) {
   .recipe-grid { grid-template-columns: 1fr; padding: 0 1rem 3rem; }
   .hero { padding: 5.5rem 1rem 2.5rem; }

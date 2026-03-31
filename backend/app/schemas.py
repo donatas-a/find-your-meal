@@ -22,6 +22,9 @@ class RecipeOut(BaseModel):
 class ImportUrlRequest(BaseModel):
     url: str
 
+class ImportTextRequest(BaseModel):
+    text: str
+
 
 class Token(BaseModel):
     access_token: str

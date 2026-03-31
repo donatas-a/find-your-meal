@@ -3,6 +3,7 @@ import uuid
 import json
 import io
 import time
+import urllib.request
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -97,6 +98,86 @@ def import_recipe_from_url(
         ingredients_lt = ingredients_lt,
         steps          = steps_en or ['-'],
         steps_lt       = steps_lt or ['-'],
+    )
+    db.add(recipe)
+    db.commit()
+    db.refresh(recipe)
+    return recipe
+
+
+KIMI_PROMPT = """Extract the recipe from the text below and return ONLY a valid JSON object with these exact fields:
+{
+  "title": "recipe name in English",
+  "title_lt": "recipe name in Lithuanian",
+  "description_lt": "short description in Lithuanian (2-3 sentences)",
+  "ingredients": ["ingredient 1 in English", "ingredient 2 in English"],
+  "ingredients_lt": ["ingredient 1 in Lithuanian", "ingredient 2 in Lithuanian"],
+  "steps": ["step 1 in English", "step 2 in English"],
+  "steps_lt": ["step 1 in Lithuanian", "step 2 in Lithuanian"]
+}
+Return ONLY the JSON, no markdown, no explanation.
+
+Recipe text:
+"""
+
+
+@router.post("/import-text", response_model=schemas.RecipeOut)
+def import_recipe_from_text(
+    payload: schemas.ImportTextRequest,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    api_key = os.getenv("KIMI_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="KIMI_API_KEY not set in environment.")
+
+    body = json.dumps({
+        "model": "kimi-latest",
+        "messages": [{"role": "user", "content": KIMI_PROMPT + payload.text}],
+        "temperature": 0.1,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.moonshot.cn/v1/chat/completions",
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kimi API error: {e}")
+
+    try:
+        content = result["choices"][0]["message"]["content"].strip()
+        # Strip markdown code block if present
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+        data = json.loads(content)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Could not parse Kimi response as JSON.")
+
+    required = ["title", "title_lt", "description_lt", "ingredients", "ingredients_lt", "steps", "steps_lt"]
+    if not all(k in data for k in required):
+        raise HTTPException(status_code=500, detail="Kimi response missing required fields.")
+
+    if db.query(models.Recipe).filter(models.Recipe.title == data["title"]).first():
+        raise HTTPException(status_code=409, detail=f"Recipe '{data['title']}' already exists.")
+
+    recipe = models.Recipe(
+        title          = data["title"],
+        title_lt       = data["title_lt"],
+        description_lt = data["description_lt"] or "-",
+        ingredients    = data["ingredients"],
+        ingredients_lt = data["ingredients_lt"],
+        steps          = data["steps"] or ["-"],
+        steps_lt       = data["steps_lt"] or ["-"],
     )
     db.add(recipe)
     db.commit()
