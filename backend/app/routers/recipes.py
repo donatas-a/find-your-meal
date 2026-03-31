@@ -133,9 +133,9 @@ def import_recipe_from_text(
         raise HTTPException(status_code=500, detail="KIMI_API_KEY not set in environment.")
 
     body = json.dumps({
-        "model": "kimi-k2.5",
+        "model": "moonshot-v1-8k",
         "messages": [{"role": "user", "content": KIMI_PROMPT + payload.text}],
-        "temperature": 1,
+        "temperature": 0.1,
     }).encode("utf-8")
 
     req = urllib.request.Request(
