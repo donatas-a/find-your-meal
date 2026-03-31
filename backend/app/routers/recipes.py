@@ -138,7 +138,7 @@ def import_recipe_from_text(
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://api.moonshot.cn/v1/chat/completions",
+        "https://api.moonshot.ai/v1/chat/completions",
         data=body,
         headers={
             "Content-Type": "application/json",
