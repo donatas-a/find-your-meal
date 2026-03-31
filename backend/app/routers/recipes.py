@@ -4,6 +4,7 @@ import json
 import io
 import time
 import urllib.request
+import urllib.error
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -149,6 +150,9 @@ def import_recipe_from_text(
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode()
+        raise HTTPException(status_code=500, detail=f"Kimi API error: {e} — {error_body}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Kimi API error: {e}")
 
