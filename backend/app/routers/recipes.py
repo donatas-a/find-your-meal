@@ -135,7 +135,7 @@ def import_recipe_from_text(
     body = json.dumps({
         "model": "kimi-k2.5",
         "messages": [{"role": "user", "content": KIMI_PROMPT + payload.text}],
-        "temperature": 0.1,
+        "temperature": 1,
     }).encode("utf-8")
 
     req = urllib.request.Request(
