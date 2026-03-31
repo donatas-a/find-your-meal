@@ -3,6 +3,7 @@ import uuid
 import json
 import io
 import time
+import re
 import urllib.request
 import urllib.error
 from typing import List, Optional
@@ -159,13 +160,12 @@ def import_recipe_from_text(
     try:
         content = result["choices"][0]["message"]["content"].strip()
         # Strip markdown code block if present
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
+        content = re.sub(r'^```(?:json)?\s*', '', content)
+        content = re.sub(r'\s*```$', '', content).strip()
         data = json.loads(content)
     except Exception:
-        raise HTTPException(status_code=500, detail="Could not parse Kimi response as JSON.")
+        raw = result["choices"][0]["message"]["content"]
+        raise HTTPException(status_code=500, detail=f"Could not parse Kimi response as JSON. Raw: {raw[:300]}")
 
     required = ["title", "title_lt", "description_lt", "ingredients", "ingredients_lt", "steps", "steps_lt"]
     if not all(k in data for k in required):
