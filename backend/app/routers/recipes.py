@@ -158,14 +158,15 @@ def import_recipe_from_text(
         raise HTTPException(status_code=500, detail=f"Kimi API error: {e}")
 
     try:
-        content = result["choices"][0]["message"]["content"].strip()
-        # Strip markdown code block if present
-        content = re.sub(r'^```(?:json)?\s*', '', content)
-        content = re.sub(r'\s*```$', '', content).strip()
-        data = json.loads(content)
+        content = result["choices"][0]["message"]["content"]
+        start = content.find('{')
+        end = content.rfind('}')
+        if start == -1 or end == -1:
+            raise ValueError("No JSON object found")
+        data = json.loads(content[start:end+1])
     except Exception:
         raw = result["choices"][0]["message"]["content"]
-        raise HTTPException(status_code=500, detail=f"Could not parse Kimi response as JSON. Raw: {raw[:300]}")
+        raise HTTPException(status_code=500, detail=f"Could not parse Kimi response as JSON. Raw: {raw[:500]}")
 
     required = ["title", "title_lt", "description_lt", "ingredients", "ingredients_lt", "steps", "steps_lt"]
     if not all(k in data for k in required):
