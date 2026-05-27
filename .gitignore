@@ -17,6 +17,9 @@ frontend/dist/
 # Uploads (user data, not code)
 uploads/
 
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
