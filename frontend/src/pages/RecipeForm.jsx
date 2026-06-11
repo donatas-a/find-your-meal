@@ -226,10 +226,11 @@ export default function RecipeForm() {
               <label className="form-label">Servings (recipe yields)</label>
               <input className="form-input" type="number" min="1" step="1" value={form.servings} onChange={e => set('servings', e.target.value)} />
             </div>
-            <div className="form-group" style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'flex-end' }}>
-              <button type="button" className="btn btn-ghost" onClick={handleEstimateNutrition} disabled={estimating}>
+            <div className="form-group" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn btn-ghost" onClick={handleEstimateNutrition} disabled={estimating} style={{ alignSelf: 'flex-start' }}>
                 {estimating ? 'Estimating…' : '✨ Estimate with AI'}
               </button>
+              <span className="form-hint">AI estimate — please review and adjust before saving.</span>
             </div>
           </div>
           {estimateError && <p className="error-msg">{estimateError}</p>}
