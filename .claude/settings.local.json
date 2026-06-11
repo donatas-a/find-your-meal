@@ -4,7 +4,9 @@
       "Bash(python3:*)",
       "Bash(git ls-remote *)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(npm run *)",
+      "PowerShell(gh auth status 2>&1; \\(Get-Command gh -ErrorAction SilentlyContinue\\))"
     ]
   }
 }
