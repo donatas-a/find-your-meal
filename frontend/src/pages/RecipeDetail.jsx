@@ -8,6 +8,13 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState(null)
   const [lang, setLang] = useState('lt')
   const [loading, setLoading] = useState(true)
+  const [bodyweight, setBodyweight] = useState(() => localStorage.getItem('bodyweight') || '')
+
+  const handleBodyweightChange = (value) => {
+    setBodyweight(value)
+    if (value) localStorage.setItem('bodyweight', value)
+    else localStorage.removeItem('bodyweight')
+  }
 
   useEffect(() => {
     api.get(`/recipes/${id}`)
@@ -48,6 +55,66 @@ export default function RecipeDetail() {
           <button className={`lang-btn ${lang === 'lt' ? 'active' : ''}`} onClick={() => setLang('lt')}>LT</button>
         </div>
       </div>
+
+      {(recipe.calories != null || recipe.protein_g != null) && (
+        <div className="recipe-section">
+          <h2>{lang === 'en' ? 'Nutrition (per serving)' : 'Maistinė vertė (1 porcijai)'}</h2>
+          <div className="nutrition-facts">
+            {recipe.calories != null && (
+              <div className="nutrition-fact">
+                <span className="nutrition-value">{recipe.calories}</span>
+                <span className="nutrition-label">kcal</span>
+              </div>
+            )}
+            {recipe.protein_g != null && (
+              <div className="nutrition-fact">
+                <span className="nutrition-value">{recipe.protein_g}g</span>
+                <span className="nutrition-label">{lang === 'en' ? 'protein' : 'baltymai'}</span>
+              </div>
+            )}
+            {recipe.serving_weight_g != null && (
+              <div className="nutrition-fact">
+                <span className="nutrition-value">{recipe.serving_weight_g}g</span>
+                <span className="nutrition-label">{lang === 'en' ? 'serving' : 'porcija'}</span>
+              </div>
+            )}
+          </div>
+
+          {recipe.protein_g != null && (
+            <div className="bodyweight-calc">
+              <label className="form-label">
+                {lang === 'en'
+                  ? 'Your bodyweight (kg) — calculate servings for your daily protein goal'
+                  : 'Jūsų kūno svoris (kg) — apskaičiuokite porcijas dienos baltymų normai'}
+              </label>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="0.1"
+                value={bodyweight}
+                onChange={e => handleBodyweightChange(e.target.value)}
+                placeholder={lang === 'en' ? 'e.g. 75' : 'pvz. 75'}
+                style={{ maxWidth: '160px' }}
+              />
+              {bodyweight > 0 && (() => {
+                const targetProtein = bodyweight * 1.8
+                const servings = targetProtein / recipe.protein_g
+                const totalCalories = recipe.calories != null ? Math.round(servings * recipe.calories) : null
+                return (
+                  <p className="bodyweight-result">
+                    {lang === 'en' ? (
+                      <>Daily protein target: <strong>{targetProtein.toFixed(0)}g</strong>. To reach it from this meal alone, eat about <strong>{servings.toFixed(1)} servings</strong>{totalCalories != null && <> (~<strong>{totalCalories} kcal</strong>)</>}.</>
+                    ) : (
+                      <>Dienos baltymų norma: <strong>{targetProtein.toFixed(0)}g</strong>. Norint ją pasiekti vien šiuo patiekalu, valgykite apie <strong>{servings.toFixed(1)} porcijos(-ų)</strong>{totalCalories != null && <> (~<strong>{totalCalories} kcal</strong>)</>}.</>
+                    )}
+                  </p>
+                )
+              })()}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="recipe-section">
         <h2>Description</h2>

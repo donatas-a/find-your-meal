@@ -387,6 +387,46 @@ img { display: block; max-width: 100%; }
   font-size: 1rem;
 }
 
+.nutrition-facts {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.nutrition-fact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface-container-low);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  min-width: 90px;
+}
+
+.nutrition-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.nutrition-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+}
+
+.bodyweight-calc {
+  margin-top: 0.5rem;
+}
+
+.bodyweight-result {
+  margin-top: 0.75rem;
+  color: var(--on-surface-variant);
+  line-height: 1.6;
+}
+
 .ingredients-list {
   list-style: none;
   display: flex;
@@ -586,6 +626,12 @@ img { display: block; max-width: 100%; }
   gap: 1rem;
 }
 
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
 .dynamic-list { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .dynamic-row {
@@ -717,6 +763,7 @@ img { display: block; max-width: 100%; }
   .hero { padding: 5.5rem 1rem 2.5rem; }
   .hero-title { font-size: 2.2rem; }
   .form-row { grid-template-columns: 1fr; }
+  .form-row-3 { grid-template-columns: 1fr; }
   .dynamic-row { grid-template-columns: 1fr auto; }
   .dynamic-row .form-input:nth-child(2) { display: none; }
   .navbar { padding: 0 1rem; }

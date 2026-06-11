@@ -13,10 +13,24 @@ class RecipeOut(BaseModel):
     steps: List[str]
     steps_lt: List[str]
     photo: Optional[str] = None
+    calories: Optional[int] = None
+    protein_g: Optional[float] = None
+    serving_weight_g: Optional[int] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class NutritionEstimateRequest(BaseModel):
+    ingredients: List[str]
+    servings: Optional[int] = 1
+
+
+class NutritionEstimate(BaseModel):
+    calories: int
+    protein_g: float
+    serving_weight_g: int
 
 
 class ImportUrlRequest(BaseModel):

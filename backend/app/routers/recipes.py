@@ -107,35 +107,14 @@ def import_recipe_from_url(
     return recipe
 
 
-KIMI_PROMPT = """Extract the recipe from the text below and return ONLY a valid JSON object with these exact fields:
-{
-  "title": "recipe name in English",
-  "title_lt": "recipe name in Lithuanian",
-  "description_lt": "short description in Lithuanian (2-3 sentences)",
-  "ingredients": ["ingredient 1 in English", "ingredient 2 in English"],
-  "ingredients_lt": ["ingredient 1 in Lithuanian", "ingredient 2 in Lithuanian"],
-  "steps": ["step 1 in English", "step 2 in English"],
-  "steps_lt": ["step 1 in Lithuanian", "step 2 in Lithuanian"]
-}
-Return ONLY the JSON, no markdown, no explanation.
-
-Recipe text:
-"""
-
-
-@router.post("/import-text", response_model=schemas.RecipeOut)
-def import_recipe_from_text(
-    payload: schemas.ImportTextRequest,
-    db: Session = Depends(get_db),
-    _admin=Depends(get_current_admin),
-):
+def _call_kimi_json(prompt: str) -> dict:
     api_key = os.getenv("KIMI_API_KEY", "")
     if not api_key:
         raise HTTPException(status_code=500, detail="KIMI_API_KEY not set in environment.")
 
     body = json.dumps({
         "model": "moonshot-v1-8k",
-        "messages": [{"role": "user", "content": KIMI_PROMPT + payload.text}],
+        "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.1,
     }).encode("utf-8")
 
@@ -163,10 +142,51 @@ def import_recipe_from_text(
         end = content.rfind('}')
         if start == -1 or end == -1:
             raise ValueError("No JSON object found")
-        data = json.loads(content[start:end+1])
+        return json.loads(content[start:end+1])
     except Exception:
         raw = result["choices"][0]["message"]["content"]
         raise HTTPException(status_code=500, detail=f"Could not parse Kimi response as JSON. Raw: {raw[:500]}")
+
+
+NUTRITION_PROMPT = """You are a nutrition expert. Estimate the nutrition for the following recipe.
+
+The recipe makes {servings} serving(s) in total. Ingredients (with quantities):
+{ingredients}
+
+Estimate the TOTAL nutrition for the whole recipe, then divide by {servings} to get PER-SERVING values.
+
+Return ONLY a valid JSON object with these exact fields, no markdown, no explanation:
+{{
+  "calories": <integer, kcal per serving>,
+  "protein_g": <number, grams of protein per serving>,
+  "serving_weight_g": <integer, approximate weight in grams of one serving>
+}}
+"""
+
+
+KIMI_PROMPT = """Extract the recipe from the text below and return ONLY a valid JSON object with these exact fields:
+{
+  "title": "recipe name in English",
+  "title_lt": "recipe name in Lithuanian",
+  "description_lt": "short description in Lithuanian (2-3 sentences)",
+  "ingredients": ["ingredient 1 in English", "ingredient 2 in English"],
+  "ingredients_lt": ["ingredient 1 in Lithuanian", "ingredient 2 in Lithuanian"],
+  "steps": ["step 1 in English", "step 2 in English"],
+  "steps_lt": ["step 1 in Lithuanian", "step 2 in Lithuanian"]
+}
+Return ONLY the JSON, no markdown, no explanation.
+
+Recipe text:
+"""
+
+
+@router.post("/import-text", response_model=schemas.RecipeOut)
+def import_recipe_from_text(
+    payload: schemas.ImportTextRequest,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    data = _call_kimi_json(KIMI_PROMPT + payload.text)
 
     required = ["title", "title_lt", "description_lt", "ingredients", "ingredients_lt", "steps", "steps_lt"]
     if not all(k in data for k in required):
@@ -188,6 +208,36 @@ def import_recipe_from_text(
     db.commit()
     db.refresh(recipe)
     return recipe
+
+
+@router.post("/estimate-nutrition", response_model=schemas.NutritionEstimate)
+def estimate_nutrition(
+    payload: schemas.NutritionEstimateRequest,
+    _admin=Depends(get_current_admin),
+):
+    ingredients = [i for i in payload.ingredients if i.strip()]
+    if not ingredients:
+        raise HTTPException(status_code=422, detail="No ingredients provided.")
+    servings = payload.servings if payload.servings and payload.servings > 0 else 1
+
+    prompt = NUTRITION_PROMPT.format(
+        servings=servings,
+        ingredients="\n".join(f"- {i}" for i in ingredients),
+    )
+    data = _call_kimi_json(prompt)
+
+    required = ["calories", "protein_g", "serving_weight_g"]
+    if not all(k in data for k in required):
+        raise HTTPException(status_code=500, detail="Kimi response missing required fields.")
+
+    try:
+        return schemas.NutritionEstimate(
+            calories=round(float(data["calories"])),
+            protein_g=round(float(data["protein_g"]), 1),
+            serving_weight_g=round(float(data["serving_weight_g"])),
+        )
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=500, detail="Kimi returned non-numeric nutrition values.")
 
 
 @router.get("/", response_model=List[schemas.RecipeOut])
@@ -212,6 +262,9 @@ def create_recipe(
     ingredients_lt: str = Form(...),
     steps: str = Form(...),
     steps_lt: str = Form(...),
+    calories: Optional[int] = Form(None),
+    protein_g: Optional[float] = Form(None),
+    serving_weight_g: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
@@ -226,6 +279,9 @@ def create_recipe(
         steps=json.loads(steps),
         steps_lt=json.loads(steps_lt),
         photo=photo_path,
+        calories=calories,
+        protein_g=protein_g,
+        serving_weight_g=serving_weight_g,
     )
     db.add(recipe)
     db.commit()
@@ -243,6 +299,9 @@ def update_recipe(
     ingredients_lt: str = Form(...),
     steps: str = Form(...),
     steps_lt: str = Form(...),
+    calories: Optional[int] = Form(None),
+    protein_g: Optional[float] = Form(None),
+    serving_weight_g: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
@@ -258,6 +317,9 @@ def update_recipe(
     recipe.ingredients_lt = json.loads(ingredients_lt)
     recipe.steps = json.loads(steps)
     recipe.steps_lt = json.loads(steps_lt)
+    recipe.calories = calories
+    recipe.protein_g = protein_g
+    recipe.serving_weight_g = serving_weight_g
 
     if photo and photo.filename:
         remove_photo(recipe.photo)

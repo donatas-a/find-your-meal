@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, Float, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.sql import func
 from .database import Base
@@ -16,6 +16,9 @@ class Recipe(Base):
     steps = Column(ARRAY(Text), nullable=False)
     steps_lt = Column(ARRAY(Text), nullable=False)
     photo = Column(String(500), nullable=True)
+    calories = Column(Integer, nullable=True)
+    protein_g = Column(Float, nullable=True)
+    serving_weight_g = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -6,6 +6,7 @@ const emptyForm = {
   title: '', title_lt: '', description_lt: '',
   ingredients: [''], ingredients_lt: [''],
   steps: [''], steps_lt: [''],
+  calories: '', protein_g: '', serving_weight_g: '', servings: '4',
 }
 
 export default function RecipeForm() {
@@ -19,6 +20,8 @@ export default function RecipeForm() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [estimating, setEstimating] = useState(false)
+  const [estimateError, setEstimateError] = useState('')
 
   useEffect(() => {
     if (!isEdit) return
@@ -30,6 +33,9 @@ export default function RecipeForm() {
         ingredients_lt: d.ingredients_lt.length ? d.ingredients_lt : [''],
         steps: d.steps.length ? d.steps : [''],
         steps_lt: d.steps_lt.length ? d.steps_lt : [''],
+        calories: d.calories ?? '',
+        protein_g: d.protein_g ?? '',
+        serving_weight_g: d.serving_weight_g ?? '',
       })
       if (d.photo) setPhotoPreview(d.photo)
     }).finally(() => setLoading(false))
@@ -59,6 +65,32 @@ export default function RecipeForm() {
     setPhotoPreview(URL.createObjectURL(file))
   }
 
+  const handleEstimateNutrition = async () => {
+    setEstimateError('')
+    const ingredients = form.ingredients.filter(Boolean)
+    if (!ingredients.length) {
+      setEstimateError('Add some ingredients first.')
+      return
+    }
+    setEstimating(true)
+    try {
+      const r = await api.post('/recipes/estimate-nutrition', {
+        ingredients,
+        servings: Number(form.servings) || 1,
+      })
+      setForm(f => ({
+        ...f,
+        calories: String(r.data.calories),
+        protein_g: String(r.data.protein_g),
+        serving_weight_g: String(r.data.serving_weight_g),
+      }))
+    } catch (err) {
+      setEstimateError(err.response?.data?.detail || 'Could not estimate nutrition.')
+    } finally {
+      setEstimating(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -72,6 +104,9 @@ export default function RecipeForm() {
       fd.append('ingredients_lt', JSON.stringify(form.ingredients_lt.filter(Boolean)))
       fd.append('steps', JSON.stringify(form.steps.filter(Boolean)))
       fd.append('steps_lt', JSON.stringify(form.steps_lt.filter(Boolean)))
+      if (form.calories !== '') fd.append('calories', form.calories)
+      if (form.protein_g !== '') fd.append('protein_g', form.protein_g)
+      if (form.serving_weight_g !== '') fd.append('serving_weight_g', form.serving_weight_g)
       if (photo) fd.append('photo', photo)
 
       if (isEdit) {
@@ -181,6 +216,37 @@ export default function RecipeForm() {
           <button type="button" className="add-btn" onClick={() => { addItem('steps'); addItem('steps_lt') }}>
             + Add step
           </button>
+        </div>
+
+        {/* Nutrition */}
+        <div className="form-section">
+          <h2>Nutrition (per serving)</h2>
+          <div className="form-row-3">
+            <div className="form-group">
+              <label className="form-label">Servings (recipe yields)</label>
+              <input className="form-input" type="number" min="1" step="1" value={form.servings} onChange={e => set('servings', e.target.value)} />
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'flex-end' }}>
+              <button type="button" className="btn btn-ghost" onClick={handleEstimateNutrition} disabled={estimating}>
+                {estimating ? 'Estimating…' : '✨ Estimate with AI'}
+              </button>
+            </div>
+          </div>
+          {estimateError && <p className="error-msg">{estimateError}</p>}
+          <div className="form-row-3">
+            <div className="form-group">
+              <label className="form-label">Calories (kcal)</label>
+              <input className="form-input" type="number" min="0" value={form.calories} onChange={e => set('calories', e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Protein (g)</label>
+              <input className="form-input" type="number" min="0" step="0.1" value={form.protein_g} onChange={e => set('protein_g', e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Serving weight (g)</label>
+              <input className="form-input" type="number" min="0" value={form.serving_weight_g} onChange={e => set('serving_weight_g', e.target.value)} />
+            </div>
+          </div>
         </div>
 
         {/* Photo */}

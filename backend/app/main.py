@@ -3,6 +3,7 @@ import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from .database import engine, Base
 from .routers import auth, recipes
@@ -29,6 +30,14 @@ def startup():
             time.sleep(2)
 
     Base.metadata.create_all(bind=engine)
+
+    # Add nutrition columns to pre-existing recipes tables
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS calories INTEGER"))
+        conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS protein_g FLOAT"))
+        conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS serving_weight_g INTEGER"))
+        conn.commit()
+
     os.makedirs("/app/uploads", exist_ok=True)
 
 
