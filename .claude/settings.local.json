@@ -6,7 +6,14 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(git add *)",
       "Bash(npm run *)",
-      "PowerShell(gh auth status 2>&1; \\(Get-Command gh -ErrorAction SilentlyContinue\\))"
+      "PowerShell(gh auth status 2>&1; \\(Get-Command gh -ErrorAction SilentlyContinue\\))",
+      "Bash(git stash *)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app/routers/recipes.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app/routers/recipes.py'\\).read\\(\\)\\); ast.parse\\(open\\('app/nutrition_data.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(curl -vI https://www.findyourmeal.fit/)"
     ]
   }
 }
