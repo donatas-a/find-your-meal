@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { unitLabel } from '../units'
+import DishPlaceholder from '../components/DishPlaceholder'
 
 export default function RecipeDetail() {
   const { id } = useParams()
@@ -39,7 +40,7 @@ export default function RecipeDetail() {
       {recipe.photo ? (
         <img src={recipe.photo} alt={recipe.title} className="recipe-hero" />
       ) : (
-        <div className="recipe-hero-placeholder">🍽️</div>
+        <DishPlaceholder seed={recipe.id} title={lang === 'en' ? recipe.title : recipe.title_lt} className="recipe-hero-placeholder" />
       )}
 
       <div className="recipe-detail-header">

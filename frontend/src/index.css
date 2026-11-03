@@ -254,15 +254,22 @@ img { display: block; max-width: 100%; }
   object-fit: cover;
 }
 
-.recipe-card-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, var(--primary-container), #a8d5b5);
+.dish-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4rem;
-  min-height: 260px;
+}
+
+.dish-placeholder-svg {
+  width: 78%;
+  max-height: 78%;
+}
+
+.recipe-card-img-wrap { position: relative; }
+
+.recipe-card-placeholder {
+  position: absolute;
+  inset: 0;
 }
 
 .recipe-card-body { padding: 0 0.25rem; }
@@ -306,12 +313,7 @@ img { display: block; max-width: 100%; }
 .recipe-hero-placeholder {
   width: 100%;
   height: 420px;
-  background: linear-gradient(135deg, var(--primary-container), #a8d5b5);
   border-radius: var(--radius-card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 5rem;
   margin-bottom: 2rem;
 }
 
@@ -569,10 +571,8 @@ img { display: block; max-width: 100%; }
 .admin-item-placeholder {
   width: 60px; height: 60px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--primary-container), #a8d5b5);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .admin-item-info { flex: 1; min-width: 0; }

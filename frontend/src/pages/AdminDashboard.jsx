@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import DishPlaceholder from '../components/DishPlaceholder'
 
 export default function AdminDashboard() {
   const [recipes, setRecipes] = useState([])
@@ -140,7 +141,7 @@ export default function AdminDashboard() {
               {r.photo ? (
                 <img src={r.photo} alt={r.title} className="admin-item-thumb" />
               ) : (
-                <div className="admin-item-placeholder">🍽️</div>
+                <DishPlaceholder seed={r.id} title={r.title_lt} compact className="admin-item-placeholder" />
               )}
               <div className="admin-item-info">
                 <div className="admin-item-title">{r.title}</div>

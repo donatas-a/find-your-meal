@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import DishPlaceholder from './DishPlaceholder'
 
 export default function RecipeCard({ recipe, featured = false, lang = 'lt' }) {
   const navigate = useNavigate()
@@ -13,7 +14,7 @@ export default function RecipeCard({ recipe, featured = false, lang = 'lt' }) {
         {recipe.photo ? (
           <img src={recipe.photo} alt={title} className="recipe-card-img" />
         ) : (
-          <div className="recipe-card-placeholder">🍽️</div>
+          <DishPlaceholder seed={recipe.id} title={title} className="recipe-card-placeholder" />
         )}
       </div>
       <div className="recipe-card-body">
