@@ -5,7 +5,6 @@ import api from '../api/client'
 export default function AdminDashboard() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [importUrl, setImportUrl] = useState('')
   const [importText, setImportText] = useState('')
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
@@ -21,22 +20,6 @@ export default function AdminDashboard() {
     if (!window.confirm(`Delete "${title}"?`)) return
     await api.delete(`/recipes/${id}`)
     setRecipes(prev => prev.filter(r => r.id !== id))
-  }
-
-  const handleImport = async (e) => {
-    e.preventDefault()
-    if (!importUrl.trim()) return
-    setImporting(true)
-    setImportError('')
-    try {
-      const { data } = await api.post('/recipes/import-url', { url: importUrl.trim() })
-      setRecipes(prev => [data, ...prev])
-      setImportUrl('')
-    } catch (err) {
-      setImportError(err.response?.data?.detail || 'Import failed. This site may not support recipe import.')
-    } finally {
-      setImporting(false)
-    }
   }
 
   const handleImportText = async (e) => {
@@ -66,25 +49,12 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      <form className="import-url-form" onSubmit={handleImport}>
-        <input
-          type="url"
-          className="form-input"
-          placeholder="Paste recipe URL to import (e.g. allrecipes.com/recipe/...)"
-          value={importUrl}
-          onChange={e => setImportUrl(e.target.value)}
-          disabled={importing}
-        />
-        <button className="btn btn-outline btn-sm" type="submit" disabled={importing || !importUrl.trim()}>
-          {importing ? 'Importing…' : 'Import from URL'}
-        </button>
-      </form>
       {importError && <div className="import-error">{importError}</div>}
 
       <form className="import-text-form" onSubmit={handleImportText}>
         <textarea
           className="form-textarea"
-          placeholder="Or paste recipe text here (works with any website — copy the full recipe text and paste it)"
+          placeholder="Paste recipe text here (works with any website — copy the full recipe text and paste it)"
           value={importText}
           onChange={e => setImportText(e.target.value)}
           disabled={importing}

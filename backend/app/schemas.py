@@ -33,9 +33,6 @@ class NutritionEstimate(BaseModel):
     serving_weight_g: int
 
 
-class ImportUrlRequest(BaseModel):
-    url: str
-
 class ImportTextRequest(BaseModel):
     text: str
 
