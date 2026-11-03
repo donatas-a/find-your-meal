@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/client'
+import { UNITS, formatIngredient } from '../units'
+
+const emptyIngredient = () => ({ amount: '', unit: '', name: '', name_lt: '' })
 
 const emptyForm = {
   title: '', title_lt: '', description_lt: '',
-  ingredients: [''], ingredients_lt: [''],
+  ingredients: [emptyIngredient()],
   steps: [''], steps_lt: [''],
   calories: '', protein_g: '', serving_weight_g: '', servings: '4',
 }
@@ -29,8 +32,7 @@ export default function RecipeForm() {
       const d = r.data
       setForm({
         title: d.title, title_lt: d.title_lt, description_lt: d.description_lt,
-        ingredients: d.ingredients.length ? d.ingredients : [''],
-        ingredients_lt: d.ingredients_lt.length ? d.ingredients_lt : [''],
+        ingredients: d.ingredient_items?.length ? d.ingredient_items : [emptyIngredient()],
         steps: d.steps.length ? d.steps : [''],
         steps_lt: d.steps_lt.length ? d.steps_lt : [''],
         calories: d.calories ?? '',
@@ -53,6 +55,12 @@ export default function RecipeForm() {
 
   const addItem = (field) => setForm(f => ({ ...f, [field]: [...f[field], ''] }))
 
+  const setIngredient = (index, key, value) => setForm(f => {
+    const arr = [...f.ingredients]
+    arr[index] = { ...arr[index], [key]: value }
+    return { ...f, ingredients: arr }
+  })
+
   const removeItem = (field, index) => setForm(f => ({
     ...f,
     [field]: f[field].filter((_, i) => i !== index),
@@ -67,7 +75,7 @@ export default function RecipeForm() {
 
   const handleEstimateNutrition = async () => {
     setEstimateError('')
-    const ingredients = form.ingredients.filter(Boolean)
+    const ingredients = form.ingredients.filter(i => i.name.trim()).map(i => formatIngredient(i, 'en'))
     if (!ingredients.length) {
       setEstimateError('Add some ingredients first.')
       return
@@ -100,8 +108,7 @@ export default function RecipeForm() {
       fd.append('title', form.title)
       fd.append('title_lt', form.title_lt)
       fd.append('description_lt', form.description_lt)
-      fd.append('ingredients', JSON.stringify(form.ingredients.filter(Boolean)))
-      fd.append('ingredients_lt', JSON.stringify(form.ingredients_lt.filter(Boolean)))
+      fd.append('ingredient_items', JSON.stringify(form.ingredients.filter(i => i.name.trim() || i.name_lt.trim())))
       fd.append('steps', JSON.stringify(form.steps.filter(Boolean)))
       fd.append('steps_lt', JSON.stringify(form.steps_lt.filter(Boolean)))
       if (form.calories !== '') fd.append('calories', form.calories)
@@ -152,33 +159,48 @@ export default function RecipeForm() {
         <div className="form-section">
           <h2>Ingredients</h2>
           <div className="dynamic-list">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span className="form-label" style={{ margin: 0 }}>English</span>
-              <span className="form-label" style={{ margin: 0 }}>Lithuanian</span>
+            <div className="ingredient-row ingredient-head">
+              <span className="form-label">Amount</span>
+              <span className="form-label">Unit</span>
+              <span className="form-label">English</span>
+              <span className="form-label">Lithuanian</span>
               <span />
             </div>
             {form.ingredients.map((item, i) => (
-              <div key={i} className="dynamic-row">
+              <div key={i} className="ingredient-row">
                 <input
-                  className="form-input"
+                  className="form-input ing-amount"
+                  placeholder="500"
+                  value={item.amount}
+                  onChange={e => setIngredient(i, 'amount', e.target.value)}
+                />
+                <select
+                  className="form-input ing-unit"
+                  value={item.unit}
+                  onChange={e => setIngredient(i, 'unit', e.target.value)}
+                >
+                  {UNITS.map(u => (
+                    <option key={u.key} value={u.key}>{u.key ? (u.en === u.lt ? u.en : `${u.en} / ${u.lt}`) : '—'}</option>
+                  ))}
+                </select>
+                <input
+                  className="form-input ing-name"
                   placeholder={`Ingredient ${i + 1}`}
-                  value={item}
-                  onChange={e => setListItem('ingredients', i, e.target.value)}
+                  value={item.name}
+                  onChange={e => setIngredient(i, 'name', e.target.value)}
                 />
                 <input
-                  className="form-input"
+                  className="form-input ing-name-lt"
                   placeholder={`Ingredientas ${i + 1}`}
-                  value={form.ingredients_lt[i] ?? ''}
-                  onChange={e => setListItem('ingredients_lt', i, e.target.value)}
+                  value={item.name_lt}
+                  onChange={e => setIngredient(i, 'name_lt', e.target.value)}
                 />
-                <button type="button" className="remove-btn" onClick={() => {
-                  removeItem('ingredients', i)
-                  removeItem('ingredients_lt', i)
-                }} disabled={form.ingredients.length === 1}>×</button>
+                <button type="button" className="remove-btn ing-remove" onClick={() => removeItem('ingredients', i)}
+                  disabled={form.ingredients.length === 1}>×</button>
               </div>
             ))}
           </div>
-          <button type="button" className="add-btn" onClick={() => { addItem('ingredients'); addItem('ingredients_lt') }}>
+          <button type="button" className="add-btn" onClick={() => setForm(f => ({ ...f, ingredients: [...f.ingredients, emptyIngredient()] }))}>
             + Add ingredient
           </button>
         </div>

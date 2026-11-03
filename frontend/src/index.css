@@ -795,7 +795,40 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 80px 150px 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ingredient-head {
+  margin-bottom: 0.25rem;
+}
+
+.ingredient-head .form-label {
+  margin: 0;
+}
+
+.ingredient-qty {
+  font-weight: 700;
+  color: var(--primary);
+  margin-right: 0.5rem;
+}
+
 @media (max-width: 600px) {
+  .ingredient-head { display: none; }
+  .ingredient-row {
+    grid-template-columns: 80px 1fr auto;
+    grid-template-areas: "amount unit remove" "name name name" "namelt namelt namelt";
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--surface-container-high);
+  }
+  .ing-amount { grid-area: amount; }
+  .ing-unit { grid-area: unit; }
+  .ing-name { grid-area: name; }
+  .ing-name-lt { grid-area: namelt; }
+  .ing-remove { grid-area: remove; }
   .recipe-grid { grid-template-columns: 1fr; padding: 0 1rem 3rem; }
   .hero { padding: 5.5rem 1rem 2.5rem; }
   .hero-title { font-size: 2.2rem; }

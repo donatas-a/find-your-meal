@@ -3,6 +3,13 @@ from typing import Optional, List
 from datetime import datetime
 
 
+class IngredientItem(BaseModel):
+    amount: str = ""
+    unit: str = ""
+    name: str
+    name_lt: str
+
+
 class RecipeOut(BaseModel):
     id: int
     title: str
@@ -10,6 +17,7 @@ class RecipeOut(BaseModel):
     description_lt: str
     ingredients: List[str]
     ingredients_lt: List[str]
+    ingredient_items: Optional[List[IngredientItem]] = None
     steps: List[str]
     steps_lt: List[str]
     photo: Optional[str] = None

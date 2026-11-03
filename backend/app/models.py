@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Float, String, Text, DateTime
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.sql import func
 from .database import Base
 
@@ -13,6 +13,8 @@ class Recipe(Base):
     description_lt = Column(Text, nullable=False)
     ingredients = Column(ARRAY(Text), nullable=False)
     ingredients_lt = Column(ARRAY(Text), nullable=False)
+    # Structured ingredients: [{"amount", "unit", "name", "name_lt"}]. See app/ingredients.py.
+    ingredient_items = Column(JSONB, nullable=True)
     steps = Column(ARRAY(Text), nullable=False)
     steps_lt = Column(ARRAY(Text), nullable=False)
     photo = Column(String(500), nullable=True)

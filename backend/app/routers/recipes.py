@@ -14,6 +14,7 @@ from ..database import get_db
 from ..auth import get_current_admin
 from ..nutrition_data import lookup_nutrition
 from ..ocr import ocr_bytes
+from ..ingredients import items_from_lines, normalize_items, lines_from_items, units_for_prompt
 
 router = APIRouter()
 UPLOAD_DIR = "/app/uploads"
@@ -104,11 +105,19 @@ KIMI_PROMPT = """Extract the recipe from the text below and return ONLY a valid 
   "title": "recipe name in English",
   "title_lt": "recipe name in Lithuanian",
   "description_lt": "short description in Lithuanian (2-3 sentences)",
-  "ingredients": ["ingredient 1 in English", "ingredient 2 in English"],
-  "ingredients_lt": ["ingredient 1 in Lithuanian", "ingredient 2 in Lithuanian"],
+  "ingredients": [
+    {"amount": "500", "unit": "g", "name": "flour", "name_lt": "miltai"},
+    {"amount": "2", "unit": "", "name": "eggs", "name_lt": "kiaušiniai"},
+    {"amount": "", "unit": "", "name": "salt to taste", "name_lt": "druska pagal skonį"}
+  ],
   "steps": ["step 1 in English", "step 2 in English"],
   "steps_lt": ["step 1 in Lithuanian", "step 2 in Lithuanian"]
 }
+Rules for ingredients:
+- "amount" is the number exactly as written (e.g. "500", "1/2", "1.5", "2-3"), or "" if there is none.
+- "unit" must be one of: """ + units_for_prompt() + """, or "" if there is no unit or it is not in the list
+  (then put the unit word into the name, e.g. "handful of spinach").
+- "name" is the ingredient in English, "name_lt" in Lithuanian, both without the amount and unit.
 Return ONLY the JSON, no markdown, no explanation.
 
 Recipe text:
@@ -123,19 +132,25 @@ def import_recipe_from_text(
 ):
     data = _call_kimi_json(KIMI_PROMPT + payload.text)
 
-    required = ["title", "title_lt", "description_lt", "ingredients", "ingredients_lt", "steps", "steps_lt"]
+    required = ["title", "title_lt", "description_lt", "ingredients", "steps", "steps_lt"]
     if not all(k in data for k in required):
         raise HTTPException(status_code=500, detail="Kimi response missing required fields.")
 
     if db.query(models.Recipe).filter(models.Recipe.title == data["title"]).first():
         raise HTTPException(status_code=409, detail=f"Recipe '{data['title']}' already exists.")
 
+    items = normalize_items(data["ingredients"])
+    if not items:
+        raise HTTPException(status_code=500, detail="Kimi returned no ingredients.")
+    ingredients_en, ingredients_lt = lines_from_items(items)
+
     recipe = models.Recipe(
         title          = data["title"],
         title_lt       = data["title_lt"],
         description_lt = data["description_lt"] or "-",
-        ingredients    = data["ingredients"],
-        ingredients_lt = data["ingredients_lt"],
+        ingredients    = ingredients_en,
+        ingredients_lt = ingredients_lt,
+        ingredient_items = items,
         steps          = data["steps"] or ["-"],
         steps_lt       = data["steps_lt"] or ["-"],
     )
@@ -229,9 +244,27 @@ def estimate_nutrition(
     )
 
 
+def _ensure_items(recipe: models.Recipe) -> models.Recipe:
+    """Recipes added outside the app (e.g. import_excel.py) may not have structured items yet."""
+    if recipe.ingredient_items is None:
+        recipe.ingredient_items = items_from_lines(recipe.ingredients, recipe.ingredients_lt)
+    return recipe
+
+
+def _resolve_ingredients(ingredient_items: Optional[str], ingredients: Optional[str], ingredients_lt: Optional[str]):
+    """Form sends ingredient_items (JSON); plain lists are still accepted for older clients."""
+    if ingredient_items:
+        items = normalize_items(json.loads(ingredient_items))
+    else:
+        items = items_from_lines(json.loads(ingredients or "[]"), json.loads(ingredients_lt or "[]"))
+    en, lt = lines_from_items(items)
+    return items, en, lt
+
+
 @router.get("/", response_model=List[schemas.RecipeOut])
 def list_recipes(db: Session = Depends(get_db)):
-    return db.query(models.Recipe).order_by(models.Recipe.created_at.desc()).all()
+    recipes = db.query(models.Recipe).order_by(models.Recipe.created_at.desc()).all()
+    return [_ensure_items(r) for r in recipes]
 
 
 @router.get("/{recipe_id}", response_model=schemas.RecipeOut)
@@ -239,7 +272,7 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
     recipe = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    return recipe
+    return _ensure_items(recipe)
 
 
 @router.post("/", response_model=schemas.RecipeOut)
@@ -247,8 +280,9 @@ def create_recipe(
     title: str = Form(...),
     title_lt: str = Form(...),
     description_lt: str = Form(...),
-    ingredients: str = Form(...),
-    ingredients_lt: str = Form(...),
+    ingredient_items: Optional[str] = Form(None),
+    ingredients: Optional[str] = Form(None),
+    ingredients_lt: Optional[str] = Form(None),
     steps: str = Form(...),
     steps_lt: str = Form(...),
     calories: Optional[int] = Form(None),
@@ -258,13 +292,15 @@ def create_recipe(
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
+    items, ingredients_en, ingredients_lt_list = _resolve_ingredients(ingredient_items, ingredients, ingredients_lt)
     photo_path = save_photo(photo) if photo and photo.filename else None
     recipe = models.Recipe(
         title=title,
         title_lt=title_lt,
         description_lt=description_lt,
-        ingredients=json.loads(ingredients),
-        ingredients_lt=json.loads(ingredients_lt),
+        ingredients=ingredients_en,
+        ingredients_lt=ingredients_lt_list,
+        ingredient_items=items,
         steps=json.loads(steps),
         steps_lt=json.loads(steps_lt),
         photo=photo_path,
@@ -284,8 +320,9 @@ def update_recipe(
     title: str = Form(...),
     title_lt: str = Form(...),
     description_lt: str = Form(...),
-    ingredients: str = Form(...),
-    ingredients_lt: str = Form(...),
+    ingredient_items: Optional[str] = Form(None),
+    ingredients: Optional[str] = Form(None),
+    ingredients_lt: Optional[str] = Form(None),
     steps: str = Form(...),
     steps_lt: str = Form(...),
     calories: Optional[int] = Form(None),
@@ -302,8 +339,10 @@ def update_recipe(
     recipe.title = title
     recipe.title_lt = title_lt
     recipe.description_lt = description_lt
-    recipe.ingredients = json.loads(ingredients)
-    recipe.ingredients_lt = json.loads(ingredients_lt)
+    items, ingredients_en, ingredients_lt_list = _resolve_ingredients(ingredient_items, ingredients, ingredients_lt)
+    recipe.ingredients = ingredients_en
+    recipe.ingredients_lt = ingredients_lt_list
+    recipe.ingredient_items = items
     recipe.steps = json.loads(steps)
     recipe.steps_lt = json.loads(steps_lt)
     recipe.calories = calories

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import { unitLabel } from '../units'
 
 export default function RecipeDetail() {
   const { id } = useParams()
@@ -124,7 +125,17 @@ export default function RecipeDetail() {
       <div className="recipe-section">
         <h2>{lang === 'en' ? 'Ingredients' : 'Ingredientai'}</h2>
         <ul className="ingredients-list">
-          {ingredients.map((item, i) => <li key={i}>{item}</li>)}
+          {recipe.ingredient_items?.length
+            ? recipe.ingredient_items.map((item, i) => {
+                const qty = [item.amount, unitLabel(item.unit, lang)].filter(Boolean).join(' ')
+                return (
+                  <li key={i}>
+                    {qty && <span className="ingredient-qty">{qty}</span>}
+                    {lang === 'en' ? item.name : item.name_lt}
+                  </li>
+                )
+              })
+            : ingredients.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       </div>
 
