@@ -754,6 +754,47 @@ img { display: block; max-width: 100%; }
   align-self: flex-end;
 }
 
+.import-photo-box {
+  margin-bottom: 1.5rem;
+}
+
+.import-photo-head {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.import-photo-head .btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.import-photo-list {
+  list-style: none;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.import-photo-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.import-photo-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 600px) {
   .recipe-grid { grid-template-columns: 1fr; padding: 0 1rem 3rem; }
   .hero { padding: 5.5rem 1rem 2.5rem; }

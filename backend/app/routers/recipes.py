@@ -13,6 +13,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..auth import get_current_admin
 from ..nutrition_data import lookup_nutrition
+from ..ocr import ocr_bytes
 
 router = APIRouter()
 UPLOAD_DIR = "/app/uploads"
@@ -38,15 +39,19 @@ def remove_photo(path: Optional[str]):
             os.remove(full)
 
 
+KIMI_MODEL = "kimi-k2.6"
+
+
 def _call_kimi_json(prompt: str) -> dict:
     api_key = os.getenv("KIMI_API_KEY", "")
     if not api_key:
         raise HTTPException(status_code=500, detail="KIMI_API_KEY not set in environment.")
 
     body = json.dumps({
-        "model": "moonshot-v1-8k",
+        "model": KIMI_MODEL,
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.1,
+        # kimi-k2.6 has a fixed temperature (0.6 without thinking), so none is sent.
+        "thinking": {"type": "disabled"},
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -59,7 +64,7 @@ def _call_kimi_json(prompt: str) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=150) as resp:
             result = json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         error_body = e.read().decode()
@@ -138,6 +143,38 @@ def import_recipe_from_text(
     db.commit()
     db.refresh(recipe)
     return recipe
+
+
+MAX_OCR_PHOTOS = 10
+
+
+@router.post("/ocr-photos", response_model=schemas.OcrResult)
+def ocr_photos(
+    photos: List[UploadFile] = File(...),
+    _admin=Depends(get_current_admin),
+):
+    """Free, local OCR with Tesseract. Reads each photo in the order given and
+    returns the combined text for review — nothing is saved."""
+    if len(photos) > MAX_OCR_PHOTOS:
+        raise HTTPException(status_code=400, detail=f"Upload at most {MAX_OCR_PHOTOS} photos at once.")
+
+    pages = []
+    for photo in photos:
+        content = photo.file.read()
+        try:
+            Image.open(io.BytesIO(content)).verify()
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"Could not read '{photo.filename}'. Use JPG, PNG or WebP.")
+        try:
+            text = ocr_bytes(content)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"OCR failed on '{photo.filename}': {e}")
+        if text:
+            pages.append(text)
+
+    if not pages:
+        raise HTTPException(status_code=422, detail="No text found in the photos.")
+    return {"text": "\n\n".join(pages)}
 
 
 @router.post("/estimate-nutrition", response_model=schemas.NutritionEstimate)

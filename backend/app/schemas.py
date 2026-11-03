@@ -37,6 +37,10 @@ class ImportTextRequest(BaseModel):
     text: str
 
 
+class OcrResult(BaseModel):
+    text: str
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
