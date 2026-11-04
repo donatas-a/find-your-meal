@@ -743,19 +743,95 @@ img { display: block; max-width: 100%; }
   margin-bottom: 1rem;
 }
 
-.import-text-form {
+.page-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(49, 51, 49, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 1rem;
+  overflow-y: auto;
+}
+
+.dialog {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-ambient);
+  width: 100%;
+  max-width: 680px;
+  padding: 1.75rem;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-header h2 {
+  font-family: 'Newsreader', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.dialog-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close:hover { background: var(--surface-container-high); }
+
+.dialog-step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-step:last-child { margin-bottom: 0; }
+
+.dialog-step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-step-body {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
 }
 
-.import-text-form .btn {
-  align-self: flex-end;
-}
-
-.import-photo-box {
-  margin-bottom: 1.5rem;
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .import-photo-head {
