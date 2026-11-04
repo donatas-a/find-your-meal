@@ -797,7 +797,7 @@ img { display: block; max-width: 100%; }
 
 .ingredient-row {
   display: grid;
-  grid-template-columns: 80px 150px 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 80px 150px auto;
   gap: 0.5rem;
   align-items: center;
 }
@@ -810,17 +810,23 @@ img { display: block; max-width: 100%; }
   margin: 0;
 }
 
+.ingredient-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .ingredient-qty {
   font-weight: 700;
   color: var(--primary);
-  margin-right: 0.5rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
   .ingredient-head { display: none; }
   .ingredient-row {
     grid-template-columns: 80px 1fr auto;
-    grid-template-areas: "amount unit remove" "name name name" "namelt namelt namelt";
+    grid-template-areas: "name name name" "namelt namelt namelt" "amount unit remove";
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--surface-container-high);
   }

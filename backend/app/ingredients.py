@@ -107,7 +107,7 @@ def normalize_items(raw: list) -> list:
 def format_item(item: dict, lang: str = "en") -> str:
     unit = UNITS.get(item.get("unit", ""), ("", "", []))[0 if lang == "en" else 1]
     name = item.get("name") if lang == "en" else item.get("name_lt")
-    return " ".join(p for p in (item.get("amount", ""), unit, name or "") if p)
+    return " ".join(p for p in (name or "", item.get("amount", ""), unit) if p)
 
 
 def lines_from_items(items: list) -> tuple:

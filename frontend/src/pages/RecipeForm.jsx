@@ -160,14 +160,26 @@ export default function RecipeForm() {
           <h2>Ingredients</h2>
           <div className="dynamic-list">
             <div className="ingredient-row ingredient-head">
-              <span className="form-label">Amount</span>
-              <span className="form-label">Unit</span>
               <span className="form-label">English</span>
               <span className="form-label">Lithuanian</span>
+              <span className="form-label">Amount</span>
+              <span className="form-label">Unit</span>
               <span />
             </div>
             {form.ingredients.map((item, i) => (
               <div key={i} className="ingredient-row">
+                <input
+                  className="form-input ing-name"
+                  placeholder={`Ingredient ${i + 1}`}
+                  value={item.name}
+                  onChange={e => setIngredient(i, 'name', e.target.value)}
+                />
+                <input
+                  className="form-input ing-name-lt"
+                  placeholder={`Ingredientas ${i + 1}`}
+                  value={item.name_lt}
+                  onChange={e => setIngredient(i, 'name_lt', e.target.value)}
+                />
                 <input
                   className="form-input ing-amount"
                   placeholder="500"
@@ -183,18 +195,6 @@ export default function RecipeForm() {
                     <option key={u.key} value={u.key}>{u.key ? (u.en === u.lt ? u.en : `${u.en} / ${u.lt}`) : '—'}</option>
                   ))}
                 </select>
-                <input
-                  className="form-input ing-name"
-                  placeholder={`Ingredient ${i + 1}`}
-                  value={item.name}
-                  onChange={e => setIngredient(i, 'name', e.target.value)}
-                />
-                <input
-                  className="form-input ing-name-lt"
-                  placeholder={`Ingredientas ${i + 1}`}
-                  value={item.name_lt}
-                  onChange={e => setIngredient(i, 'name_lt', e.target.value)}
-                />
                 <button type="button" className="remove-btn ing-remove" onClick={() => removeItem('ingredients', i)}
                   disabled={form.ingredients.length === 1}>×</button>
               </div>

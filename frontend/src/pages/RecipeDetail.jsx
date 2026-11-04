@@ -130,9 +130,9 @@ export default function RecipeDetail() {
             ? recipe.ingredient_items.map((item, i) => {
                 const qty = [item.amount, unitLabel(item.unit, lang)].filter(Boolean).join(' ')
                 return (
-                  <li key={i}>
+                  <li key={i} className="ingredient-item">
+                    <span>{lang === 'en' ? item.name : item.name_lt}</span>
                     {qty && <span className="ingredient-qty">{qty}</span>}
-                    {lang === 'en' ? item.name : item.name_lt}
                   </li>
                 )
               })
