@@ -39,6 +39,7 @@ class NutritionEstimate(BaseModel):
     calories: int
     protein_g: float
     serving_weight_g: int
+    skipped: List[str] = []
 
 
 class ImportTextRequest(BaseModel):

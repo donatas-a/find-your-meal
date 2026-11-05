@@ -873,7 +873,7 @@ img { display: block; max-width: 100%; }
 
 .ingredient-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 80px 150px auto;
+  grid-template-columns: 80px 150px 1fr 1fr auto;
   gap: 0.5rem;
   align-items: center;
 }
@@ -888,8 +888,7 @@ img { display: block; max-width: 100%; }
 
 .ingredient-item {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .ingredient-qty {
@@ -902,7 +901,7 @@ img { display: block; max-width: 100%; }
   .ingredient-head { display: none; }
   .ingredient-row {
     grid-template-columns: 80px 1fr auto;
-    grid-template-areas: "name name name" "namelt namelt namelt" "amount unit remove";
+    grid-template-areas: "amount unit remove" "namelt namelt namelt" "name name name";
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--surface-container-high);
   }
@@ -917,6 +916,6 @@ img { display: block; max-width: 100%; }
   .form-row { grid-template-columns: 1fr; }
   .form-row-3 { grid-template-columns: 1fr; }
   .dynamic-row { grid-template-columns: 1fr auto; }
-  .dynamic-row .form-input:nth-child(2) { display: none; }
+  .dynamic-row .form-input:nth-child(1) { display: none; }
   .navbar { padding: 0 1rem; }
 }

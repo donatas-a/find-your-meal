@@ -86,6 +86,8 @@ export default function RecipeForm() {
         ingredients,
         servings: Number(form.servings) || 1,
       })
+      const skipped = r.data.skipped || []
+      setEstimateError(skipped.length ? `Not counted (unknown ingredient or amount): ${skipped.join('; ')}` : '')
       setForm(f => ({
         ...f,
         calories: String(r.data.calories),
@@ -141,12 +143,12 @@ export default function RecipeForm() {
           <h2>Basic Info</h2>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Title (English)</label>
-              <input className="form-input" value={form.title} onChange={e => set('title', e.target.value)} required />
-            </div>
-            <div className="form-group">
               <label className="form-label">Title (Lithuanian)</label>
               <input className="form-input" value={form.title_lt} onChange={e => set('title_lt', e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Title (English)</label>
+              <input className="form-input" value={form.title} onChange={e => set('title', e.target.value)} required />
             </div>
           </div>
           <div className="form-group">
@@ -160,26 +162,14 @@ export default function RecipeForm() {
           <h2>Ingredients</h2>
           <div className="dynamic-list">
             <div className="ingredient-row ingredient-head">
-              <span className="form-label">English</span>
-              <span className="form-label">Lithuanian</span>
               <span className="form-label">Amount</span>
               <span className="form-label">Unit</span>
+              <span className="form-label">Lithuanian</span>
+              <span className="form-label">English</span>
               <span />
             </div>
             {form.ingredients.map((item, i) => (
               <div key={i} className="ingredient-row">
-                <input
-                  className="form-input ing-name"
-                  placeholder={`Ingredient ${i + 1}`}
-                  value={item.name}
-                  onChange={e => setIngredient(i, 'name', e.target.value)}
-                />
-                <input
-                  className="form-input ing-name-lt"
-                  placeholder={`Ingredientas ${i + 1}`}
-                  value={item.name_lt}
-                  onChange={e => setIngredient(i, 'name_lt', e.target.value)}
-                />
                 <input
                   className="form-input ing-amount"
                   placeholder="500"
@@ -195,6 +185,18 @@ export default function RecipeForm() {
                     <option key={u.key} value={u.key}>{u.key ? (u.en === u.lt ? u.en : `${u.en} / ${u.lt}`) : '—'}</option>
                   ))}
                 </select>
+                <input
+                  className="form-input ing-name-lt"
+                  placeholder={`Ingredientas ${i + 1}`}
+                  value={item.name_lt}
+                  onChange={e => setIngredient(i, 'name_lt', e.target.value)}
+                />
+                <input
+                  className="form-input ing-name"
+                  placeholder={`Ingredient ${i + 1}`}
+                  value={item.name}
+                  onChange={e => setIngredient(i, 'name', e.target.value)}
+                />
                 <button type="button" className="remove-btn ing-remove" onClick={() => removeItem('ingredients', i)}
                   disabled={form.ingredients.length === 1}>×</button>
               </div>
@@ -210,23 +212,23 @@ export default function RecipeForm() {
           <h2>Steps</h2>
           <div className="dynamic-list">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span className="form-label" style={{ margin: 0 }}>English</span>
               <span className="form-label" style={{ margin: 0 }}>Lithuanian</span>
+              <span className="form-label" style={{ margin: 0 }}>English</span>
               <span />
             </div>
             {form.steps.map((step, i) => (
               <div key={i} className="dynamic-row">
                 <input
                   className="form-input"
-                  placeholder={`Step ${i + 1}`}
-                  value={step}
-                  onChange={e => setListItem('steps', i, e.target.value)}
-                />
-                <input
-                  className="form-input"
                   placeholder={`Žingsnis ${i + 1}`}
                   value={form.steps_lt[i] ?? ''}
                   onChange={e => setListItem('steps_lt', i, e.target.value)}
+                />
+                <input
+                  className="form-input"
+                  placeholder={`Step ${i + 1}`}
+                  value={step}
+                  onChange={e => setListItem('steps', i, e.target.value)}
                 />
                 <button type="button" className="remove-btn" onClick={() => {
                   removeItem('steps', i)
@@ -250,9 +252,9 @@ export default function RecipeForm() {
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-ghost" onClick={handleEstimateNutrition} disabled={estimating} style={{ alignSelf: 'flex-start' }}>
-                {estimating ? 'Estimating…' : '✨ Estimate with AI'}
+                {estimating ? 'Estimating…' : 'Estimate from ingredients'}
               </button>
-              <span className="form-hint">AI estimate — please review and adjust before saving.</span>
+              <span className="form-hint">Estimated from a nutrition table (per serving) — please review and adjust before saving.</span>
             </div>
           </div>
           {estimateError && <p className="error-msg">{estimateError}</p>}

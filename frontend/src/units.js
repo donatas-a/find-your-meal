@@ -22,5 +22,5 @@ export const unitLabel = (key, lang = 'en') => {
 }
 
 export const formatIngredient = (item, lang = 'en') =>
-  [lang === 'en' ? item.name : item.name_lt, item.amount, unitLabel(item.unit, lang)]
+  [item.amount, unitLabel(item.unit, lang), lang === 'en' ? item.name : item.name_lt]
     .filter(Boolean).join(' ')

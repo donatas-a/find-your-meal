@@ -66,6 +66,58 @@ def parse_line(line: str) -> dict:
     return {"amount": "", "unit": "", "name": s}
 
 
+_VULGAR = {"½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125}
+
+
+def amount_to_float(text: str):
+    """Turn an amount as written ("1,5", "1/2", "1 1/2", "2-3", "½") into a number, or None."""
+    s = (text or "").strip().replace(",", ".")
+    if not s:
+        return None
+    if s in _VULGAR:
+        return _VULGAR[s]
+    try:
+        parts = re.split(r"\s*[-–]\s*", s)  # range: use the midpoint
+        vals = []
+        for part in parts:
+            total = 0.0
+            for tok in part.split():
+                if "/" in tok:
+                    a, b = tok.split("/")
+                    total += float(a) / float(b)
+                else:
+                    total += float(tok)
+            vals.append(total)
+        return sum(vals) / len(vals)
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+# Millilitres per volume unit, and grams per ml for ingredients that differ a lot from water.
+_ML_PER_UNIT = {"ml": 1, "l": 1000, "tsp": 5, "tbsp": 15, "cup": 240}
+_DENSITY_G_PER_ML = [  # first keyword match wins; default is 1.0 (water, milk, juice, broth)
+    (("oil",), 0.92), (("butter",), 0.96), (("honey",), 1.42), (("syrup",), 1.3),
+    (("flour",), 0.53), (("sugar",), 0.85), (("rice",), 0.8), (("oat",), 0.4),
+    (("cocoa",), 0.45), (("breadcrumb",), 0.45), (("salt",), 1.2),
+]
+
+
+def to_grams(amount: str, unit: str, name: str):
+    """Weight in grams for a weight or volume amount, or None for units we can't convert (pcs, clove...)."""
+    qty = amount_to_float(amount)
+    if qty is None:
+        return None
+    if unit == "g":
+        return qty
+    if unit == "kg":
+        return qty * 1000
+    if unit in _ML_PER_UNIT:
+        text = (name or "").lower()
+        density = next((d for kws, d in _DENSITY_G_PER_ML if all(k in text for k in kws)), 1.0)
+        return qty * _ML_PER_UNIT[unit] * density
+    return None
+
+
 def items_from_lines(lines_en: list, lines_lt: list) -> list:
     """Build structured items from the English and Lithuanian text lists (paired by position)."""
     items = []
@@ -107,7 +159,7 @@ def normalize_items(raw: list) -> list:
 def format_item(item: dict, lang: str = "en") -> str:
     unit = UNITS.get(item.get("unit", ""), ("", "", []))[0 if lang == "en" else 1]
     name = item.get("name") if lang == "en" else item.get("name_lt")
-    return " ".join(p for p in (name or "", item.get("amount", ""), unit) if p)
+    return " ".join(p for p in (item.get("amount", ""), unit, name or "") if p)
 
 
 def lines_from_items(items: list) -> tuple:

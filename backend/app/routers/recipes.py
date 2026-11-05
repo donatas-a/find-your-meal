@@ -12,9 +12,9 @@ from PIL import Image
 from .. import models, schemas
 from ..database import get_db
 from ..auth import get_current_admin
-from ..nutrition_data import lookup_nutrition
+from ..nutrition_data import lookup_nutrition, piece_weight, can_weight, PINCH_G
 from ..ocr import ocr_bytes
-from ..ingredients import items_from_lines, normalize_items, lines_from_items, units_for_prompt
+from ..ingredients import items_from_lines, normalize_items, lines_from_items, units_for_prompt, parse_line, to_grams, amount_to_float
 
 router = APIRouter()
 UPLOAD_DIR = "/app/uploads"
@@ -83,21 +83,6 @@ def _call_kimi_json(prompt: str) -> dict:
     except Exception:
         raw = result["choices"][0]["message"]["content"]
         raise HTTPException(status_code=500, detail=f"Could not parse Kimi response as JSON. Raw: {raw[:500]}")
-
-
-GRAM_RE = re.compile(r'(\d+(?:[.,]\d+)?)\s*g\b', re.IGNORECASE)
-
-
-UNRESOLVED_NUTRITION_PROMPT = """You are a precise nutrition calculator. Estimate the TOTAL nutrition for these recipe ingredients combined (with their given quantities):
-{ingredients}
-
-Return ONLY a valid JSON object with these exact fields, no markdown, no explanation:
-{{
-  "calories": <integer, total kcal for all of these combined>,
-  "protein_g": <number, total grams of protein for all of these combined>,
-  "weight_g": <integer, total weight in grams for all of these combined>
-}}
-"""
 
 
 KIMI_PROMPT = """Extract the recipe from the text below and return ONLY a valid JSON object with these exact fields:
@@ -192,6 +177,32 @@ def ocr_photos(
     return {"text": "\n\n".join(pages)}
 
 
+# Ingredients with no amount that don't need one ("salt to taste", "parsley for garnish").
+OPTIONAL_RE = re.compile(r"to taste|for serving|for garnish|for decoration|optional|as needed|pagal skon", re.IGNORECASE)
+
+
+def _grams_for(parsed: dict, line: str) -> Optional[float]:
+    """Weight in grams of one ingredient line, from its weight/volume, piece count, pinch or can."""
+    name = parsed["name"] or line
+    grams = to_grams(parsed["amount"], parsed["unit"], name)
+    if grams:
+        return grams
+    qty = amount_to_float(parsed["amount"])
+    if not qty:
+        return None
+    unit = parsed["unit"]
+    if unit in ("", "pcs", "clove"):
+        per_piece = piece_weight(name)
+        if unit == "clove" and per_piece is not None and "garlic" not in name.lower():
+            return None  # "clove" only means a garlic clove here
+        return qty * per_piece if per_piece else None
+    if unit == "pinch":
+        return qty * PINCH_G
+    if unit == "can":
+        return qty * can_weight(name)
+    return None
+
+
 @router.post("/estimate-nutrition", response_model=schemas.NutritionEstimate)
 def estimate_nutrition(
     payload: schemas.NutritionEstimateRequest,
@@ -205,42 +216,30 @@ def estimate_nutrition(
     total_kcal = 0.0
     total_protein = 0.0
     total_weight = 0.0
-    unresolved = []
+    skipped = []
 
     for ing in ingredients:
-        nutrition = lookup_nutrition(ing)
-        m = GRAM_RE.search(ing)
-        if nutrition and m:
-            grams = float(m.group(1).replace(",", "."))
+        parsed = parse_line(ing)
+        nutrition = lookup_nutrition(parsed["name"] or ing)
+        grams = _grams_for(parsed, ing) if nutrition else None
+        if nutrition and grams:
             kcal_per_100g, protein_per_100g = nutrition
             total_kcal += grams * kcal_per_100g / 100
             total_protein += grams * protein_per_100g / 100
             total_weight += grams
+        elif not parsed["amount"] and OPTIONAL_RE.search(ing):
+            continue
         else:
-            unresolved.append(ing)
-
-    if unresolved:
-        prompt = UNRESOLVED_NUTRITION_PROMPT.format(
-            ingredients="\n".join(f"- {i}" for i in unresolved),
-        )
-        data = _call_kimi_json(prompt)
-        required = ["calories", "protein_g", "weight_g"]
-        if not all(k in data for k in required):
-            raise HTTPException(status_code=500, detail="Kimi response missing required fields.")
-        try:
-            total_kcal += float(data["calories"])
-            total_protein += float(data["protein_g"])
-            total_weight += float(data["weight_g"])
-        except (TypeError, ValueError):
-            raise HTTPException(status_code=500, detail="Kimi returned non-numeric nutrition values.")
+            skipped.append(ing)
 
     if total_weight <= 0:
-        raise HTTPException(status_code=500, detail="Could not estimate nutrition for these ingredients.")
+        raise HTTPException(status_code=422, detail="Could not estimate nutrition: no ingredient had a known value and amount.")
 
     return schemas.NutritionEstimate(
         calories=round(total_kcal / servings),
         protein_g=round(total_protein / servings, 1),
         serving_weight_g=round(total_weight / servings),
+        skipped=skipped,
     )
 
 
