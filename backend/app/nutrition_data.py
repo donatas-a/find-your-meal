@@ -9,6 +9,7 @@ them (e.g. "potato", "milk", "chicken"). Sections below are ordered with
 this in mind.
 
 Grains, pasta, rice and legumes are DRY weights (the weight you put in the pot).
+Meat, poultry and fish are RAW weights (the weight you buy).
 """
 
 import re
@@ -139,37 +140,41 @@ NUTRITION_TABLE: list[tuple[tuple[str, ...], float, float]] = [
     (("ground chicken",), 143, 17),
     (("minced chicken",), 143, 17),
     (("chicken wing",), 203, 30),
-    (("chicken drumstick",), 172, 28),
-    (("chicken leg",), 172, 28),
-    (("chicken fillet",), 165, 31),
-    (("chicken breast",), 165, 31),
-    (("chicken thigh",), 209, 26),
+    (("chicken drumstick",), 161, 18),
+    (("chicken leg",), 161, 18),
+    (("chicken fillet",), 120, 22.5),
+    (("chicken breast",), 120, 22.5),
+    (("chicken thigh",), 121, 19.7),
     (("chicken liver",), 119, 17),
-    (("chicken",), 239, 27),
+    (("chicken",), 160, 20),
     (("ground turkey",), 148, 20),
     (("minced turkey",), 148, 20),
-    (("turkey breast",), 135, 30),
-    (("turkey",), 189, 29),
+    (("turkey breast",), 114, 24),
+    (("turkey",), 130, 20),
     (("goose",), 305, 25),
     (("rabbit",), 173, 33),
     (("venison",), 158, 30),
     (("duck",), 337, 19),
-    (("lamb",), 294, 25),
-    (("veal",), 172, 24),
+    (("lamb",), 230, 18),
+    (("veal",), 150, 20),
     (("ground beef",), 254, 17),
     (("beef", "mince"), 254, 17),
-    (("beef",), 250, 26),
+    (("beef",), 217, 20),
     (("pork belly",), 518, 9),
+    (("pork tenderloin",), 120, 21),
+    (("pork loin",), 143, 21),
+    (("pork chop",), 143, 21),
+    (("pork shoulder",), 236, 17),
     (("minced pork",), 263, 16),
     (("minced meat",), 250, 17),
     (("ground meat",), 250, 17),
     (("ground lamb",), 283, 17),
     (("minced beef",), 254, 17),
     (("minced lamb",), 283, 17),
-    (("beef steak",), 271, 25),
-    (("steak",), 271, 25),
+    (("beef steak",), 217, 20),
+    (("steak",), 217, 20),
     (("ground pork",), 263, 16),
-    (("pork",), 242, 27),
+    (("pork",), 170, 20),
     (("prosciutto",), 250, 26),
     (("jamon",), 241, 31),
     (("chorizo",), 455, 24),
@@ -180,7 +185,7 @@ NUTRITION_TABLE: list[tuple[tuple[str, ...], float, float]] = [
     (("kielbasa",), 301, 12),
     (("mortadella",), 311, 16),
     ((" pate ",), 319, 13),
-    (("bacon",), 541, 37),
+    (("bacon",), 417, 12),
     ((" ham ",), 145, 21),
     (("salami",), 380, 22),
     (("sausage",), 301, 12),
@@ -219,8 +224,8 @@ NUTRITION_TABLE: list[tuple[tuple[str, ...], float, float]] = [
     (("sardine",), 208, 25),
     (("anchovy",), 131, 20),
     (("tuna",), 132, 28),
-    (("shrimp",), 99, 24),
-    (("prawn",), 99, 24),
+    (("shrimp",), 85, 20),
+    (("prawn",), 85, 20),
     (("crab",), 97, 19),
     (("mussel",), 86, 12),
     (("squid",), 92, 16),
@@ -592,14 +597,14 @@ PIECE_WEIGHT_G: list[tuple[tuple[str, ...], float]] = [
     (("grapefruit",), 250), (("apple",), 180), (("pear",), 170), (("banana",), 120), (("peach",), 150),
     (("plum",), 60), (("kiwi",), 70), (("apricot",), 35), (("mango",), 200),
     (("tortilla",), 45), (("pita",), 60), (("bread",), 30), (("toast",), 30), ((" bun ",), 60), ((" buns",), 60),
-    (("sausage",), 75), (("chicken breast",), 175), (("chicken thigh",), 100), (("bacon",), 12),
+    (("sausage",), 75), (("chicken breast",), 175), (("chicken thigh",), 100), (("bacon",), 25),
     (("meatball",), 25), (("bay leaf",), 0.3), (("bay leaves",), 0.3), ((" tea ",), 2), (("bouillon",), 10),
 ]
 
 # Weight in grams of one "can" (default 400 g; legumes are dry-equivalent, see below) and of a "pinch" (0.4 g).
 CAN_WEIGHT_G: list[tuple[tuple[str, ...], float]] = [
     # Canned legumes are cooked; the table holds dry values, so these are the dry-equivalent grams of a 400 g can.
-    (("baked bean",), 400), (("green bean",), 400), (("chickpea",), 140), (("bean",), 140), (("lentil",), 140),
+    (("baked bean",), 400), (("green bean",), 400), (("chickpea",), 105), (("bean",), 100), (("lentil",), 80),
     (("tuna",), 140), (("sardine",), 90), (("corn",), 300), (("coconut",), 400)]
 DEFAULT_CAN_G = 400.0
 PINCH_G = 0.4

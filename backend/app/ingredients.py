@@ -99,6 +99,11 @@ _DENSITY_G_PER_ML = [  # first keyword match wins; default is 1.0 (water, milk, 
     (("oil",), 0.92), (("butter",), 0.96), (("honey",), 1.42), (("syrup",), 1.3),
     (("flour",), 0.53), (("sugar",), 0.85), (("rice",), 0.8), (("oat",), 0.4),
     (("cocoa",), 0.45), (("breadcrumb",), 0.45), (("salt",), 1.2),
+    (("quinoa",), 0.71), (("lentil",), 0.8), (("couscous",), 0.72), (("bulgur",), 0.58), (("chickpea",), 0.83),
+    (("bean",), 0.8), (("barley",), 0.8), (("cornmeal",), 0.65), (("polenta",), 0.65), (("semolina",), 0.7),
+    (("buckwheat",), 0.7), (("pasta",), 0.4), (("macaroni",), 0.4), (("almond",), 0.6), (("walnut",), 0.43),
+    (("cashew",), 0.6), (("peanut",), 0.6), (("raisin",), 0.6), (("seed",), 0.6), (("coconut", "milk"), 1.0),
+    (("coconut",), 0.35), (("parmesan",), 0.42), (("cheddar",), 0.47), (("cheese",), 0.47),
 ]
 
 
