@@ -58,19 +58,19 @@ export default function AdminDashboard() {
           {recipes.map(r => (
             <div key={r.id} className="admin-item">
               {r.photo ? (
-                <img src={r.photo} alt={r.title} className="admin-item-thumb" />
+                <img src={r.photo} alt={r.title_lt} className="admin-item-thumb" />
               ) : (
                 <DishPlaceholder seed={r.id} title={r.title_lt} compact className="admin-item-placeholder" />
               )}
               <div className="admin-item-info">
-                <div className="admin-item-title">{r.title}</div>
-                <div className="admin-item-title-lt">{r.title_lt}</div>
+                <div className="admin-item-title">{r.title_lt}</div>
+                <div className="admin-item-title-lt">{r.title}</div>
               </div>
               <div className="admin-item-actions">
                 <button className="btn btn-outline btn-sm" style={{ color: '#1a1a1a', borderColor: '#e5e7eb' }} onClick={() => navigate(`/admin/edit/${r.id}`)}>
                   {t('dash.edit')}
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id, r.title)}>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id, r.title_lt)}>
                   {t('dash.delete')}
                 </button>
               </div>
