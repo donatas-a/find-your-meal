@@ -419,16 +419,6 @@ img { display: block; max-width: 100%; }
   color: var(--on-surface-variant);
 }
 
-.bodyweight-calc {
-  margin-top: 0.5rem;
-}
-
-.bodyweight-result {
-  margin-top: 0.75rem;
-  color: var(--on-surface-variant);
-  line-height: 1.6;
-}
-
 .ingredients-list {
   list-style: none;
   display: flex;

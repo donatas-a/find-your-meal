@@ -10,13 +10,6 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState(null)
   const [lang, setLang] = useState('lt')
   const [loading, setLoading] = useState(true)
-  const [bodyweight, setBodyweight] = useState(() => localStorage.getItem('bodyweight') || '')
-
-  const handleBodyweightChange = (value) => {
-    setBodyweight(value)
-    if (value) localStorage.setItem('bodyweight', value)
-    else localStorage.removeItem('bodyweight')
-  }
 
   useEffect(() => {
     api.get(`/recipes/${id}`)
@@ -87,40 +80,6 @@ export default function RecipeDetail() {
               </div>
             )}
           </div>
-
-          {recipe.protein_g != null && (
-            <div className="bodyweight-calc">
-              <label className="form-label">
-                {lang === 'en'
-                  ? 'Your bodyweight (kg) — calculate servings for your daily protein goal'
-                  : 'Jūsų kūno svoris (kg) — apskaičiuokite porcijas dienos baltymų normai'}
-              </label>
-              <input
-                className="form-input"
-                type="number"
-                min="0"
-                step="0.1"
-                value={bodyweight}
-                onChange={e => handleBodyweightChange(e.target.value)}
-                placeholder={lang === 'en' ? 'e.g. 75' : 'pvz. 75'}
-                style={{ maxWidth: '160px' }}
-              />
-              {bodyweight > 0 && (() => {
-                const targetProtein = bodyweight * 1.8
-                const servings = targetProtein / recipe.protein_g
-                const totalCalories = recipe.calories != null ? Math.round(servings * recipe.calories) : null
-                return (
-                  <p className="bodyweight-result">
-                    {lang === 'en' ? (
-                      <>Daily protein target: <strong>{targetProtein.toFixed(0)}g</strong>. To reach it from this meal alone, eat about <strong>{servings.toFixed(1)} servings</strong>{totalCalories != null && <> (~<strong>{totalCalories} kcal</strong>)</>}.</>
-                    ) : (
-                      <>Dienos baltymų norma: <strong>{targetProtein.toFixed(0)}g</strong>. Norint ją pasiekti vien šiuo patiekalu, valgykite apie <strong>{servings.toFixed(1)} porcijos(-ų)</strong>{totalCalories != null && <> (~<strong>{totalCalories} kcal</strong>)</>}.</>
-                    )}
-                  </p>
-                )
-              })()}
-            </div>
-          )}
         </div>
       )}
 
