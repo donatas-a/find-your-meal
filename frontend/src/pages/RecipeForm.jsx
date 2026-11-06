@@ -38,6 +38,7 @@ export default function RecipeForm() {
         calories: d.calories ?? '',
         protein_g: d.protein_g ?? '',
         serving_weight_g: d.serving_weight_g ?? '',
+        servings: String(d.servings ?? 4),
       })
       if (d.photo) setPhotoPreview(d.photo)
     }).finally(() => setLoading(false))
@@ -116,6 +117,7 @@ export default function RecipeForm() {
       if (form.calories !== '') fd.append('calories', form.calories)
       if (form.protein_g !== '') fd.append('protein_g', form.protein_g)
       if (form.serving_weight_g !== '') fd.append('serving_weight_g', form.serving_weight_g)
+      if (form.servings !== '') fd.append('servings', Math.max(1, Math.round(Number(form.servings)) || 1))
       if (photo) fd.append('photo', photo)
 
       if (isEdit) {

@@ -74,6 +74,12 @@ export default function RecipeDetail() {
                 <span className="nutrition-label">{lang === 'en' ? 'protein' : 'baltymai'}</span>
               </div>
             )}
+            {recipe.servings != null && (
+              <div className="nutrition-fact">
+                <span className="nutrition-value">{recipe.servings}</span>
+                <span className="nutrition-label">{lang === 'en' ? 'servings' : 'porcijos'}</span>
+              </div>
+            )}
             {recipe.serving_weight_g != null && (
               <div className="nutrition-fact">
                 <span className="nutrition-value">{recipe.serving_weight_g}g</span>

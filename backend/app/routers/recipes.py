@@ -287,6 +287,7 @@ def create_recipe(
     calories: Optional[int] = Form(None),
     protein_g: Optional[float] = Form(None),
     serving_weight_g: Optional[int] = Form(None),
+    servings: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
@@ -306,6 +307,7 @@ def create_recipe(
         calories=calories,
         protein_g=protein_g,
         serving_weight_g=serving_weight_g,
+        servings=servings,
     )
     db.add(recipe)
     db.commit()
@@ -327,6 +329,7 @@ def update_recipe(
     calories: Optional[int] = Form(None),
     protein_g: Optional[float] = Form(None),
     serving_weight_g: Optional[int] = Form(None),
+    servings: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
@@ -347,6 +350,7 @@ def update_recipe(
     recipe.calories = calories
     recipe.protein_g = protein_g
     recipe.serving_weight_g = serving_weight_g
+    recipe.servings = servings
 
     if photo and photo.filename:
         remove_photo(recipe.photo)

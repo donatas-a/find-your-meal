@@ -38,6 +38,7 @@ def startup():
         conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS calories INTEGER"))
         conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS protein_g FLOAT"))
         conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS serving_weight_g INTEGER"))
+        conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS servings INTEGER"))
         conn.execute(text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS ingredient_items JSONB"))
         conn.commit()
 

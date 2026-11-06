@@ -21,6 +21,8 @@ class Recipe(Base):
     calories = Column(Integer, nullable=True)
     protein_g = Column(Float, nullable=True)
     serving_weight_g = Column(Integer, nullable=True)
+    # Number of servings the recipe makes; calories / protein / serving weight are per one serving.
+    servings = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

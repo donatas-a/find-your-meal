@@ -24,6 +24,7 @@ class RecipeOut(BaseModel):
     calories: Optional[int] = None
     protein_g: Optional[float] = None
     serving_weight_g: Optional[int] = None
+    servings: Optional[int] = None
     created_at: datetime
 
     class Config:
