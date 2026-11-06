@@ -14,7 +14,7 @@ from ..database import get_db
 from ..auth import get_current_admin
 from ..nutrition_data import lookup_nutrition, piece_weight, can_weight, PINCH_G
 from ..ocr import ocr_bytes
-from ..ingredients import items_from_lines, normalize_items, lines_from_items, units_for_prompt, parse_line, to_grams, amount_to_float
+from ..ingredients import items_from_lines, normalize_items, lines_from_items, units_for_prompt, parse_line, parse_line_default_amount, to_grams, amount_to_float
 
 router = APIRouter()
 UPLOAD_DIR = "/app/uploads"
@@ -219,7 +219,7 @@ def estimate_nutrition(
     skipped = []
 
     for ing in ingredients:
-        parsed = parse_line(ing)
+        parsed = parse_line_default_amount(ing)
         nutrition = lookup_nutrition(parsed["name"] or ing)
         grams = _grams_for(parsed, ing) if nutrition else None
         if nutrition and grams:

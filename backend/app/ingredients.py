@@ -123,6 +123,19 @@ def to_grams(amount: str, unit: str, name: str):
     return None
 
 
+_LEADING_UNIT = re.compile(rf"^(?P<unit>{_UNIT})(?:\s+of)?\s+(?P<name>.+)$", re.IGNORECASE)
+
+
+def parse_line_default_amount(line: str) -> dict:
+    """Like parse_line, but a unit with no amount means one of it ("pinch salt", "tbsp olive oil")."""
+    parsed = parse_line(line)
+    if not parsed["amount"]:
+        m = _LEADING_UNIT.match(parsed["name"])
+        if m:
+            return {"amount": "1", "unit": unit_key(m.group("unit")), "name": m.group("name").strip()}
+    return parsed
+
+
 def items_from_lines(lines_en: list, lines_lt: list) -> list:
     """Build structured items from the English and Lithuanian text lists (paired by position)."""
     items = []
