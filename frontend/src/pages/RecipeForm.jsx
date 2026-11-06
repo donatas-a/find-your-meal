@@ -25,6 +25,7 @@ export default function RecipeForm() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
   const [estimating, setEstimating] = useState(false)
   const [estimateError, setEstimateError] = useState('')
 
@@ -122,12 +123,19 @@ export default function RecipeForm() {
       if (form.servings !== '') fd.append('servings', Math.max(1, Math.round(Number(form.servings)) || 1))
       if (photo) fd.append('photo', photo)
 
+      setSaved(false)
       if (isEdit) {
-        await api.put(`/recipes/${id}`, fd)
+        const { data } = await api.put(`/recipes/${id}`, fd)
+        // Stay on the page: show the saved photo and confirm.
+        setPhoto(null)
+        if (data.photo) setPhotoPreview(data.photo)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 4000)
       } else {
-        await api.post('/recipes/', fd)
+        // New recipe: continue on its edit page so saving again doesn't create a duplicate.
+        const { data } = await api.post('/recipes/', fd)
+        navigate(`/admin/edit/${data.id}`, { replace: true })
       }
-      navigate('/admin')
     } catch (err) {
       setError(err.response?.data?.detail || t('form.wrong'))
     } finally {
@@ -293,6 +301,7 @@ export default function RecipeForm() {
         </div>
 
         {error && <p className="error-msg">{error}</p>}
+        {saved && <p style={{ color: 'var(--primary)', fontWeight: 600, textAlign: 'center', marginTop: '0.5rem' }}>{t('form.saved')}</p>}
 
         <div className="form-actions">
           <button type="button" className="btn btn-ghost" onClick={() => navigate('/admin')}>{t('form.cancel')}</button>

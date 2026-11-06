@@ -155,6 +155,9 @@ NUTRITION_TABLE: list[tuple[tuple[str, ...], float, float]] = [
     (("rabbit",), 173, 33),
     (("venison",), 158, 30),
     (("duck",), 337, 19),
+    (("lamb s lettuce",), 14, 1.8),
+    (("lambs lettuce",), 14, 1.8),
+    (("corn salad",), 14, 1.8),
     (("lamb",), 230, 18),
     (("veal",), 150, 20),
     (("ground beef",), 254, 17),
@@ -523,6 +526,13 @@ NUTRITION_TABLE: list[tuple[tuple[str, ...], float, float]] = [
     (("sweet chili",), 180, 0.5),
     (("chili sauce",), 100, 2),
     (("tabasco",), 12, 1),
+    (("romaine",), 17, 1.2),
+    (("iceberg",), 14, 0.9),
+    (("radicchio",), 23, 1.4),
+    (("mache",), 14, 1.8),
+    (("mixed greens",), 17, 1.4),
+    (("salad",), 17, 1.4),
+    ((" greens",), 20, 2),
     (("coconut milk",), 230, 2.3),
 
     # ── Other protein sources ────────────────────────────────────────────

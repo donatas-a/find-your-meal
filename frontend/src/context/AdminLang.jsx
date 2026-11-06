@@ -72,6 +72,7 @@ const TEXT = {
   'form.cancel': ['Cancel', 'Atšaukti'],
   'form.saving': ['Saving…', 'Saugoma…'],
   'form.save': ['Save Changes', 'Išsaugoti pakeitimus'],
+  'form.saved': ['Saved ✓', 'Išsaugota ✓'],
   'form.create': ['Create Recipe', 'Sukurti receptą'],
 }
 
