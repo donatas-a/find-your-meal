@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import api from '../api/client'
+import { useAdminLang } from '../context/AdminLang'
 
 // Dialog: read recipe photos with free OCR, review the text, then let Kimi
 // turn it into a recipe. Calls onImported(recipe) when a recipe is saved.
 export default function ImportFromPictureDialog({ open, onClose, onImported }) {
+  const { t } = useAdminLang()
   const [photos, setPhotos] = useState([])
   const [text, setText] = useState('')
   const [busy, setBusy] = useState('') // '', 'reading', 'importing'
@@ -51,7 +53,7 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
       setText(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + data.text)
       setPhotos([])
     } catch (err) {
-      setError(err.response?.data?.detail || 'Could not read the photos.')
+      setError(err.response?.data?.detail || t('imp.readError'))
     } finally {
       setBusy('')
     }
@@ -68,7 +70,7 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
       setPhotos([])
       onImported(data)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Import failed.')
+      setError(err.response?.data?.detail || t('imp.failed'))
     } finally {
       setBusy('')
     }
@@ -78,8 +80,8 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
     <div className="dialog-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) close() }}>
       <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
         <div className="dialog-header">
-          <h2 id="import-dialog-title">Import from picture</h2>
-          <button type="button" className="dialog-close" onClick={close} disabled={!!busy} aria-label="Close">×</button>
+          <h2 id="import-dialog-title">{t('imp.title')}</h2>
+          <button type="button" className="dialog-close" onClick={close} disabled={!!busy} aria-label={t('imp.close')}>×</button>
         </div>
 
         <div className="dialog-step">
@@ -87,12 +89,12 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
           <div className="dialog-step-body">
             <div className="import-photo-head">
               <label className={`btn btn-outline btn-sm${busy ? ' disabled' : ''}`}>
-                + Add recipe photos
+                {t('imp.addPhotos')}
                 <input type="file" accept="image/jpeg,image/png,image/webp" multiple
                   style={{ display: 'none' }} onChange={addPhotos} disabled={!!busy} />
               </label>
               <button className="btn btn-outline btn-sm" type="button" onClick={readPhotos} disabled={!!busy || !photos.length}>
-                {busy === 'reading' ? 'Reading…' : photos.length > 1 ? `Read text from ${photos.length} photos` : 'Read text from photo'}
+                {busy === 'reading' ? t('imp.reading') : photos.length > 1 ? t('imp.readMany', { n: photos.length }) : t('imp.readOne')}
               </button>
             </div>
             {photos.length > 0 && (
@@ -100,14 +102,14 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
                 {photos.map((f, i) => (
                   <li key={`${f.name}-${i}`}>
                     <span className="import-photo-name">{i + 1}. {f.name}</span>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => movePhoto(i, -1)} disabled={i === 0} title="Move up">↑</button>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => movePhoto(i, 1)} disabled={i === photos.length - 1} title="Move down">↓</button>
-                    <button type="button" className="remove-btn" onClick={() => removePhoto(i)} title="Remove">×</button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => movePhoto(i, -1)} disabled={i === 0} title={t('imp.up')}>↑</button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => movePhoto(i, 1)} disabled={i === photos.length - 1} title={t('imp.down')}>↓</button>
+                    <button type="button" className="remove-btn" onClick={() => removePhoto(i)} title={t('imp.remove')}>×</button>
                   </li>
                 ))}
               </ol>
             )}
-            <p className="form-hint">Recipe spans several pages? Add all photos in page order.</p>
+            <p className="form-hint">{t('imp.hint')}</p>
           </div>
         </div>
 
@@ -116,7 +118,7 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
           <div className="dialog-step-body">
             <textarea
               className="form-textarea"
-              placeholder="The text from your photos appears here. Check it and fix any mistakes — or paste recipe text directly."
+              placeholder={t('imp.placeholder')}
               value={text}
               onChange={e => setText(e.target.value)}
               disabled={!!busy}
@@ -124,9 +126,9 @@ export default function ImportFromPictureDialog({ open, onClose, onImported }) {
             />
             {error && <div className="import-error">{error}</div>}
             <div className="dialog-actions">
-              <button type="button" className="btn btn-ghost" onClick={close} disabled={!!busy}>Cancel</button>
+              <button type="button" className="btn btn-ghost" onClick={close} disabled={!!busy}>{t('imp.cancel')}</button>
               <button className="btn btn-primary" type="submit" disabled={!!busy || !text.trim()}>
-                {busy === 'importing' ? 'Importing…' : 'Import recipe'}
+                {busy === 'importing' ? t('imp.importing') : t('imp.submit')}
               </button>
             </div>
           </div>

@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import DishPlaceholder from '../components/DishPlaceholder'
 import ImportFromPictureDialog from '../components/ImportFromPictureDialog'
+import { useAdminLang } from '../context/AdminLang'
 
 export default function AdminDashboard() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [importOpen, setImportOpen] = useState(false)
   const navigate = useNavigate()
+  const { t } = useAdminLang()
 
   const fetchRecipes = () => {
     api.get('/recipes/').then(r => setRecipes(r.data)).finally(() => setLoading(false))
@@ -17,7 +19,7 @@ export default function AdminDashboard() {
   useEffect(() => { fetchRecipes() }, [])
 
   const handleDelete = async (id, title) => {
-    if (!window.confirm(`Delete "${title}"?`)) return
+    if (!window.confirm(t('dash.confirmDelete', { title }))) return
     await api.delete(`/recipes/${id}`)
     setRecipes(prev => prev.filter(r => r.id !== id))
   }
@@ -27,18 +29,18 @@ export default function AdminDashboard() {
     setImportOpen(false)
   }
 
-  if (loading) return <div className="loading">Loading…</div>
+  if (loading) return <div className="loading">{t('loading')}</div>
 
   return (
     <div className="container">
       <div className="page-header">
-        <h1 className="page-title">Manage Recipes</h1>
+        <h1 className="page-title">{t('dash.title')}</h1>
         <div className="page-header-actions">
           <button className="btn btn-primary" onClick={() => setImportOpen(true)}>
-            Import from picture
+            {t('dash.import')}
           </button>
           <button className="btn btn-primary" onClick={() => navigate('/admin/new')}>
-            Add recipe manually
+            {t('dash.add')}
           </button>
         </div>
       </div>
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
       />
 
       {recipes.length === 0 ? (
-        <div className="empty-state">No recipes yet. Add your first one!</div>
+        <div className="empty-state">{t('dash.empty')}</div>
       ) : (
         <div className="admin-list">
           {recipes.map(r => (
@@ -66,10 +68,10 @@ export default function AdminDashboard() {
               </div>
               <div className="admin-item-actions">
                 <button className="btn btn-outline btn-sm" style={{ color: '#1a1a1a', borderColor: '#e5e7eb' }} onClick={() => navigate(`/admin/edit/${r.id}`)}>
-                  Edit
+                  {t('dash.edit')}
                 </button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id, r.title)}>
-                  Delete
+                  {t('dash.delete')}
                 </button>
               </div>
             </div>

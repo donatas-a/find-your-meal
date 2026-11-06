@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api/client'
 import { UNITS, formatIngredient } from '../units'
+import { useAdminLang } from '../context/AdminLang'
 
 const emptyIngredient = () => ({ amount: '', unit: '', name: '', name_lt: '' })
 
@@ -16,6 +17,7 @@ export default function RecipeForm() {
   const { id } = useParams()
   const isEdit = !!id
   const navigate = useNavigate()
+  const { t } = useAdminLang()
 
   const [form, setForm] = useState(emptyForm)
   const [photo, setPhoto] = useState(null)
@@ -78,7 +80,7 @@ export default function RecipeForm() {
     setEstimateError('')
     const ingredients = form.ingredients.filter(i => i.name.trim()).map(i => formatIngredient(i, 'en'))
     if (!ingredients.length) {
-      setEstimateError('Add some ingredients first.')
+      setEstimateError(t('form.addFirst'))
       return
     }
     setEstimating(true)
@@ -88,7 +90,7 @@ export default function RecipeForm() {
         servings: Number(form.servings) || 1,
       })
       const skipped = r.data.skipped || []
-      setEstimateError(skipped.length ? `Not counted (unknown ingredient or amount): ${skipped.join('; ')}` : '')
+      setEstimateError(skipped.length ? t('form.notCounted', { list: skipped.join('; ') }) : '')
       setForm(f => ({
         ...f,
         calories: String(r.data.calories),
@@ -96,7 +98,7 @@ export default function RecipeForm() {
         serving_weight_g: String(r.data.serving_weight_g),
       }))
     } catch (err) {
-      setEstimateError(err.response?.data?.detail || 'Could not estimate nutrition.')
+      setEstimateError(err.response?.data?.detail || t('form.estimateFailed'))
     } finally {
       setEstimating(false)
     }
@@ -127,54 +129,54 @@ export default function RecipeForm() {
       }
       navigate('/admin')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Something went wrong.')
+      setError(err.response?.data?.detail || t('form.wrong'))
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) return <div className="loading">Loading…</div>
+  if (loading) return <div className="loading">{t('loading')}</div>
 
   return (
     <div className="recipe-form-page">
-      <h1>{isEdit ? 'Edit Recipe' : 'New Recipe'}</h1>
+      <h1>{isEdit ? t('form.edit') : t('form.new')}</h1>
       <form onSubmit={handleSubmit}>
 
         {/* Basic info */}
         <div className="form-section">
-          <h2>Basic Info</h2>
+          <h2>{t('form.basic')}</h2>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Title (Lithuanian)</label>
+              <label className="form-label">{t('form.titleLt')}</label>
               <input className="form-input" value={form.title_lt} onChange={e => set('title_lt', e.target.value)} required />
             </div>
             <div className="form-group">
-              <label className="form-label">Title (English)</label>
+              <label className="form-label">{t('form.titleEn')}</label>
               <input className="form-input" value={form.title} onChange={e => set('title', e.target.value)} required />
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Description (Lithuanian)</label>
+            <label className="form-label">{t('form.descLt')}</label>
             <textarea className="form-textarea" value={form.description_lt} onChange={e => set('description_lt', e.target.value)} required />
           </div>
         </div>
 
         {/* Ingredients */}
         <div className="form-section">
-          <h2>Ingredients</h2>
+          <h2>{t('form.ingredients')}</h2>
           <div className="dynamic-list">
             <div className="ingredient-row ingredient-head">
-              <span className="form-label">Amount</span>
-              <span className="form-label">Unit</span>
-              <span className="form-label">Lithuanian</span>
-              <span className="form-label">English</span>
+              <span className="form-label">{t('form.amount')}</span>
+              <span className="form-label">{t('form.unit')}</span>
+              <span className="form-label">{t('form.lt')}</span>
+              <span className="form-label">{t('form.en')}</span>
               <span />
             </div>
             {form.ingredients.map((item, i) => (
               <div key={i} className="ingredient-row">
                 <input
                   className="form-input ing-amount"
-                  placeholder="500"
+                  placeholder={t('form.qty')}
                   value={item.amount}
                   onChange={e => setIngredient(i, 'amount', e.target.value)}
                 />
@@ -205,17 +207,17 @@ export default function RecipeForm() {
             ))}
           </div>
           <button type="button" className="add-btn" onClick={() => setForm(f => ({ ...f, ingredients: [...f.ingredients, emptyIngredient()] }))}>
-            + Add ingredient
+            {t('form.addIngredient')}
           </button>
         </div>
 
         {/* Steps */}
         <div className="form-section">
-          <h2>Steps</h2>
+          <h2>{t('form.steps')}</h2>
           <div className="dynamic-list">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span className="form-label" style={{ margin: 0 }}>Lithuanian</span>
-              <span className="form-label" style={{ margin: 0 }}>English</span>
+              <span className="form-label" style={{ margin: 0 }}>{t('form.lt')}</span>
+              <span className="form-label" style={{ margin: 0 }}>{t('form.en')}</span>
               <span />
             </div>
             {form.steps.map((step, i) => (
@@ -240,37 +242,37 @@ export default function RecipeForm() {
             ))}
           </div>
           <button type="button" className="add-btn" onClick={() => { addItem('steps'); addItem('steps_lt') }}>
-            + Add step
+            {t('form.addStep')}
           </button>
         </div>
 
         {/* Nutrition */}
         <div className="form-section">
-          <h2>Nutrition (per serving)</h2>
+          <h2>{t('form.nutrition')}</h2>
           <div className="form-row-3">
             <div className="form-group">
-              <label className="form-label">Servings (recipe yields)</label>
+              <label className="form-label">{t('form.servings')}</label>
               <input className="form-input" type="number" min="1" step="1" value={form.servings} onChange={e => set('servings', e.target.value)} />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-ghost" onClick={handleEstimateNutrition} disabled={estimating} style={{ alignSelf: 'flex-start' }}>
-                {estimating ? 'Estimating…' : 'Estimate from ingredients'}
+                {estimating ? t('form.estimating') : t('form.estimate')}
               </button>
-              <span className="form-hint">Estimated from a nutrition table (per serving) — please review and adjust before saving.</span>
+              <span className="form-hint">{t('form.estimateHint')}</span>
             </div>
           </div>
           {estimateError && <p className="error-msg">{estimateError}</p>}
           <div className="form-row-3">
             <div className="form-group">
-              <label className="form-label">Calories (kcal)</label>
+              <label className="form-label">{t('form.calories')}</label>
               <input className="form-input" type="number" min="0" value={form.calories} onChange={e => set('calories', e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Protein (g)</label>
+              <label className="form-label">{t('form.protein')}</label>
               <input className="form-input" type="number" min="0" step="0.1" value={form.protein_g} onChange={e => set('protein_g', e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Serving weight (g)</label>
+              <label className="form-label">{t('form.weight')}</label>
               <input className="form-input" type="number" min="0" value={form.serving_weight_g} onChange={e => set('serving_weight_g', e.target.value)} />
             </div>
           </div>
@@ -278,13 +280,13 @@ export default function RecipeForm() {
 
         {/* Photo */}
         <div className="form-section">
-          <h2>Photo</h2>
+          <h2>{t('form.photo')}</h2>
           <label className="photo-upload-area">
             {photoPreview ? (
               <img src={photoPreview} alt="Preview" className="photo-preview" />
             ) : null}
             <div className="photo-label">
-              {photoPreview ? 'Click to change photo' : 'Click to upload photo (JPG, PNG, WebP)'}
+              {photoPreview ? t('form.changePhoto') : t('form.uploadPhoto')}
             </div>
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
           </label>
@@ -293,9 +295,9 @@ export default function RecipeForm() {
         {error && <p className="error-msg">{error}</p>}
 
         <div className="form-actions">
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/admin')}>Cancel</button>
+          <button type="button" className="btn btn-ghost" onClick={() => navigate('/admin')}>{t('form.cancel')}</button>
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Recipe'}
+            {saving ? t('form.saving') : isEdit ? t('form.save') : t('form.create')}
           </button>
         </div>
       </form>

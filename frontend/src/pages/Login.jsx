@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useAdminLang } from '../context/AdminLang'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -9,6 +10,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
+  const { t } = useAdminLang()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -20,7 +22,7 @@ export default function Login() {
       login(data.access_token)
       navigate('/admin')
     } catch {
-      setError('Invalid username or password.')
+      setError(t('login.error'))
     } finally {
       setLoading(false)
     }
@@ -29,10 +31,10 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>Admin Login</h1>
+        <h1>{t('login.title')}</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Username</label>
+            <label className="form-label">{t('login.username')}</label>
             <input
               className="form-input"
               type="text"
@@ -43,7 +45,7 @@ export default function Login() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">{t('login.password')}</label>
             <input
               className="form-input"
               type="password"
@@ -59,7 +61,7 @@ export default function Login() {
             style={{ width: '100%', marginTop: '1.25rem', justifyContent: 'center' }}
             disabled={loading}
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
       </div>
